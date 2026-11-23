@@ -1,0 +1,3004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Peyton, Let's Go to Australia — Dyko & Peyton</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js r128 CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #12100e;
+      font-family: var(--font-sans);
+      color: #f5efe6;
+    }
+
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      touch-action: none;
+    }
+
+    .serif-title {
+      font-family: var(--font-serif);
+    }
+
+    /* Warm Minimalist Glassmorphism */
+    .glass-panel {
+      background: rgba(24, 21, 18, 0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(245, 235, 220, 0.14);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-pill {
+      background: rgba(28, 24, 21, 0.68);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(245, 235, 220, 0.15);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .glass-pill:hover {
+      background: rgba(45, 38, 33, 0.85);
+      border-color: rgba(235, 198, 138, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .glass-pill:active {
+      transform: translateY(0px) scale(0.98);
+    }
+
+    .glass-pill.active-pill {
+      background: rgba(217, 167, 106, 0.24);
+      border-color: rgba(232, 189, 133, 0.65);
+      color: #fbe8c8;
+      box-shadow: 0 0 20px rgba(217, 167, 106, 0.2);
+    }
+
+    .btn-warm {
+      background: linear-gradient(135deg, #e0b682 0%, #c9935b 100%);
+      color: #1a1512;
+      font-weight: 600;
+      box-shadow: 0 8px 25px rgba(201, 147, 91, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-warm:hover {
+      background: linear-gradient(135deg, #ead6a3 0%, #d49f68 100%);
+      box-shadow: 0 12px 30px rgba(212, 159, 104, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      transform: translateY(-2px);
+    }
+
+    .btn-warm:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    /* Boarding Pass Unfold Animation */
+    @keyframes unfoldPass {
+      0% {
+        opacity: 0;
+        transform: translateY(28px) scale(0.94) rotateX(12deg);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotateX(0deg);
+      }
+    }
+
+    .boarding-pass-enter {
+      animation: unfoldPass 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .ticket-notch-left, .ticket-notch-right {
+      position: absolute;
+      top: 50%;
+      width: 24px;
+      height: 24px;
+      background-color: #13100e;
+      border-radius: 9999px;
+      transform: translateY(-50%);
+      z-index: 10;
+    }
+    .ticket-notch-left {
+      left: -13px;
+      border-right: 1px solid rgba(245, 235, 220, 0.16);
+    }
+    .ticket-notch-right {
+      right: -13px;
+      border-left: 1px solid rgba(245, 235, 220, 0.16);
+    }
+
+    /* Smooth Fade Overlay */
+    #scene-fade {
+      position: fixed;
+      inset: 0;
+      background: #110e0c;
+      z-index: 60;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Whisper / Dialogue Toast */
+    #romantic-toast {
+      transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Virtual Joystick */
+    #joystick-zone {
+      touch-action: none;
+    }
+
+    /* Custom Scrollbar hide */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="relative select-none">
+
+  <!-- 3D WebGL Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- Smooth Scene Transition Curtain -->
+  <div id="scene-fade"></div>
+
+  <!-- TOP HUD BAR: Brand Title, Scene Indicator, Whisper Quote & Audio Toggle -->
+  <header class="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3 md:px-7 md:py-5 pointer-events-none">
+    <!-- Left: Couple Badge -->
+    <div class="glass-pill px-3.5 py-1.5 rounded-full flex items-center gap-2.5 pointer-events-auto">
+      <span class="w-2 h-2 rounded-full bg-amber-300 animate-pulse"></span>
+      <span class="text-xs md:text-sm font-medium tracking-wide text-stone-200">Dyko &amp; Peyton</span>
+      <span id="hud-scene-label" class="hidden sm:inline-block text-xs text-stone-400 border-l border-stone-700 pl-2.5">Invitation</span>
+    </div>
+
+    <!-- Center: Objective / Location Banner (Visible in Scene 2/3/4) -->
+    <div id="objective-banner" class="hidden glass-pill px-4 py-1.5 rounded-full items-center gap-2 text-xs md:text-sm text-amber-100/90 shadow-lg">
+      <svg class="w-3.5 h-3.5 text-amber-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      <span id="objective-text">Walk to the seaside café together</span>
+    </div>
+
+    <!-- Right: Mute / Unmute Audio Button -->
+    <button id="audio-toggle-btn"
+      class="glass-pill px-3.5 py-1.5 rounded-full flex items-center gap-2 text-xs md:text-sm text-stone-200 pointer-events-auto focus:outline-none"
+      title="Toggle Sound">
+      <svg id="icon-sound-on" class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/>
+      </svg>
+      <svg id="icon-sound-off" class="w-4 h-4 text-stone-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>
+      </svg>
+      <span id="audio-label" class="hidden sm:inline">Sound On</span>
+    </button>
+  </header>
+
+  <!-- FLOATING ROMANTIC WHISPER TOAST (Shows sweet lines like "I'm in love with you, Pey.") -->
+  <div id="romantic-toast"
+    class="fixed top-16 md:top-20 left-1/2 -translate-x-1/2 z-30 pointer-events-none opacity-0 -translate-y-2 max-w-md w-[90%] text-center">
+    <div class="glass-panel px-5 py-3 rounded-2xl inline-block border border-amber-200/25 shadow-2xl">
+      <p id="romantic-toast-speaker" class="text-[10px] uppercase tracking-[0.2em] text-amber-300/80 mb-0.5 font-semibold">Dyko to Peyton</p>
+      <p id="romantic-toast-text" class="serif-title italic text-lg md:text-xl text-amber-50 leading-snug">
+        "I'm in love with you, Pey."
+      </p>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       SCENE 0: INTRO / ANIMATED BOARDING PASS INVITATION
+  ====================================================================== -->
+  <section id="ui-scene-intro" class="fixed inset-0 z-20 flex items-center justify-center p-4 pointer-events-auto">
+    <div class="boarding-pass-enter max-w-lg w-full">
+      <div class="glass-panel rounded-3xl overflow-hidden relative border border-amber-100/15">
+
+        <!-- Top Boarding Pass Header -->
+        <div class="px-6 pt-7 pb-5 md:px-9 md:pt-8 md:pb-6 border-b border-dashed border-stone-700/80 relative">
+          <div class="flex items-center justify-between text-[11px] uppercase tracking-[0.22em] text-amber-300/80 font-medium mb-3">
+            <span>First Class Boarding Pass</span>
+            <span>Flight DP-143</span>
+          </div>
+
+          <p class="text-stone-300 text-sm md:text-base font-light italic mb-1">
+            A little trip for the two of us...
+          </p>
+          <h1 class="serif-title text-3xl md:text-5xl font-semibold text-amber-50 tracking-tight leading-tight">
+            Peyton, let's go to Australia.
+          </h1>
+        </div>
+
+        <!-- Ticket Cutout Notches -->
+        <div class="relative">
+          <div class="ticket-notch-left"></div>
+          <div class="ticket-notch-right"></div>
+        </div>
+
+        <!-- Flight Route & Passenger Details -->
+        <div class="px-6 py-5 md:px-9 md:py-6 space-y-5">
+          <!-- From -> To Row -->
+          <div class="grid grid-cols-7 items-center bg-stone-900/55 rounded-2xl p-4 border border-stone-800/80">
+            <div class="col-span-3">
+              <span class="text-[10px] uppercase tracking-[0.18em] text-stone-400 block">From</span>
+              <span class="text-base md:text-lg font-semibold text-stone-100 mt-0.5 block">Distance</span>
+              <span class="text-[11px] text-stone-400">Every mile apart</span>
+            </div>
+
+            <div class="col-span-1 flex flex-col items-center justify-center">
+              <svg class="w-5 h-5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+              </svg>
+              <div class="w-full border-t border-dotted border-amber-300/40 mt-1"></div>
+            </div>
+
+            <div class="col-span-3 text-right">
+              <span class="text-[10px] uppercase tracking-[0.18em] text-stone-400 block">To</span>
+              <span class="text-base md:text-lg font-semibold text-amber-200 mt-0.5 block">Sydney, Australia</span>
+              <span class="text-[11px] text-stone-400">Harbour &amp; Coast</span>
+            </div>
+          </div>
+
+          <!-- Passengers & Meta Grid -->
+          <div class="grid grid-cols-3 gap-3 text-left">
+            <div class="bg-stone-900/40 rounded-xl p-3 border border-stone-800/60">
+              <span class="text-[10px] uppercase tracking-wider text-stone-400 block">Passengers</span>
+              <span class="text-xs md:text-sm font-semibold text-stone-100 mt-0.5 block">Dyko &amp; Peyton</span>
+            </div>
+            <div class="bg-stone-900/40 rounded-xl p-3 border border-stone-800/60">
+              <span class="text-[10px] uppercase tracking-wider text-stone-400 block">Seats</span>
+              <span class="text-xs md:text-sm font-semibold text-stone-100 mt-0.5 block">2A &amp; 2B (Side by Side)</span>
+            </div>
+            <div class="bg-stone-900/40 rounded-xl p-3 border border-stone-800/60">
+              <span class="text-[10px] uppercase tracking-wider text-stone-400 block">Note</span>
+              <span class="text-xs md:text-sm font-medium text-amber-200/90 mt-0.5 block italic">"I'm in love, Pey"</span>
+            </div>
+          </div>
+
+          <!-- Primary CTA -->
+          <div class="pt-1">
+            <button id="btn-accept-flight"
+              class="btn-warm w-full py-3.5 px-6 rounded-2xl text-sm md:text-base tracking-wide flex items-center justify-center gap-2.5">
+              <span>Accept &amp; Board Flight</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       SCENE 1: THE FLIGHT TOGETHER (3D CUTAWAY CABIN)
+  ====================================================================== -->
+  <section id="ui-scene-flight" class="fixed inset-x-0 bottom-0 z-20 p-4 md:p-7 pointer-events-none hidden">
+    <div class="max-w-xl mx-auto glass-panel rounded-3xl p-5 md:p-6 pointer-events-auto">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[11px] uppercase tracking-[0.2em] text-amber-300/85 font-medium">35,000 FT • Crossing the Pacific</span>
+        <span class="text-xs text-stone-400">Drag to orbit view</span>
+      </div>
+      <h2 id="flight-status-title" class="serif-title text-2xl md:text-3xl text-amber-50 font-medium mb-1">
+        Enjoying the view together...
+      </h2>
+      <p id="flight-status-desc" class="text-xs md:text-sm text-stone-300 font-light mb-4">
+        Sitting right next to each other above the golden clouds on our way to Sydney.
+      </p>
+
+      <!-- Romantic Interactive Flight Buttons -->
+      <div class="flex flex-wrap items-center gap-2 mb-4">
+        <button id="btn-flight-hold-hands"
+          class="glass-pill px-4 py-2.5 rounded-xl text-xs md:text-sm font-medium text-amber-100 flex items-center gap-2">
+          <span>Hold Hands</span>
+        </button>
+        <button id="btn-flight-hug"
+          class="glass-pill px-4 py-2.5 rounded-xl text-xs md:text-sm font-medium text-stone-200 flex items-center gap-2">
+          <span>Hug Her</span>
+        </button>
+        <button id="btn-flight-kiss"
+          class="glass-pill px-4 py-2.5 rounded-xl text-xs md:text-sm font-medium text-stone-200 flex items-center gap-2">
+          <span>Kiss Her</span>
+        </button>
+        <button id="btn-flight-sleep"
+          class="glass-pill px-4 py-2.5 rounded-xl text-xs md:text-sm font-medium text-stone-200 flex items-center gap-2">
+          <span>Sleep Together</span>
+        </button>
+      </div>
+
+      <button id="btn-land-australia"
+        class="btn-warm w-full py-3 px-5 rounded-2xl text-sm md:text-base flex items-center justify-center gap-2">
+        <span>Land in Australia</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+        </svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       SCENE 2: ARRIVAL IN AUSTRALIA (PLAYABLE WALK + MULTI-SPOTS + ROMANTIC ACTIONS)
+  ====================================================================== -->
+  <section id="ui-scene-walk" class="fixed inset-0 z-20 pointer-events-none hidden">
+    <!-- Top Secondary Bar: Places to Visit in Sydney / Australia -->
+    <div class="fixed top-14 md:top-16 left-1/2 -translate-x-1/2 z-20 w-full max-w-2xl px-3 pointer-events-auto">
+      <div class="glass-panel rounded-2xl px-3 py-2 flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar">
+        <span class="text-[10px] uppercase tracking-wider text-stone-400 px-2 shrink-0 hidden sm:inline">Places to Visit:</span>
+        <button data-spot="opera" class="spot-btn glass-pill px-3 py-1.5 rounded-xl text-xs text-stone-200 shrink-0 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-300"></span>
+          <span>1. Opera House Lookout</span>
+        </button>
+        <button data-spot="bondi" class="spot-btn glass-pill px-3 py-1.5 rounded-xl text-xs text-stone-200 shrink-0 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-300"></span>
+          <span>2. Bondi Beach &amp; Koalas</span>
+        </button>
+        <button data-spot="cabana" class="spot-btn glass-pill px-3 py-1.5 rounded-xl text-xs text-stone-200 shrink-0 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-purple-300"></span>
+          <span>3. Starlight Bed</span>
+        </button>
+        <button data-spot="cafe" class="spot-btn glass-pill px-3 py-1.5 rounded-xl text-xs text-amber-200 border-amber-300/40 shrink-0 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+          <span>4. Seaside Café ★</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile On-Screen Virtual Joystick (Bottom Left) -->
+    <div id="joystick-zone"
+      class="fixed bottom-28 md:bottom-8 left-5 z-30 w-28 h-28 rounded-full glass-panel flex items-center justify-center pointer-events-auto border border-stone-600/40">
+      <div class="text-[9px] uppercase tracking-widest text-stone-400/70 absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap">
+        Move Couple
+      </div>
+      <div id="joystick-knob"
+        class="w-11 h-11 rounded-full bg-amber-200/80 shadow-lg border border-white/40 transition-transform duration-75">
+      </div>
+    </div>
+
+    <!-- Bottom Center/Right: Romantic Action Bar & Spot Context Card -->
+    <div class="fixed bottom-4 inset-x-0 z-20 px-4 pointer-events-none flex flex-col items-center md:items-end md:pr-7">
+      <div class="max-w-lg w-full glass-panel rounded-3xl p-4 pointer-events-auto">
+        <div class="flex items-center justify-between gap-2 mb-2.5">
+          <div>
+            <span id="walk-spot-tag" class="text-[10px] uppercase tracking-[0.18em] text-amber-300 font-semibold block">
+              Sydney Harbour Boardwalk
+            </span>
+            <h3 id="walk-spot-title" class="serif-title text-xl md:text-2xl text-stone-100 leading-tight">
+              Walking hand in hand with you, Pey
+            </h3>
+          </div>
+          <button id="btn-enter-cafe-direct"
+            class="btn-warm px-3.5 py-2 rounded-xl text-xs font-semibold shrink-0">
+            Sit at Café →
+          </button>
+        </div>
+
+        <!-- Couple Interactive Actions (Hug, Kiss, Sleep Together, Sweet Whisper) -->
+        <div class="grid grid-cols-4 gap-1.5">
+          <button id="btn-walk-hug"
+            class="glass-pill py-2 px-2 rounded-xl text-xs font-medium text-stone-100 text-center">
+            Hug Her
+          </button>
+          <button id="btn-walk-kiss"
+            class="glass-pill py-2 px-2 rounded-xl text-xs font-medium text-stone-100 text-center">
+            Kiss Her
+          </button>
+          <button id="btn-walk-sleep"
+            class="glass-pill py-2 px-2 rounded-xl text-xs font-medium text-stone-100 text-center">
+            Sleep Together
+          </button>
+          <button id="btn-walk-whisper"
+            class="glass-pill py-2 px-2 rounded-xl text-xs font-medium text-amber-200 text-center">
+            "I'm in love"
+          </button>
+        </div>
+
+        <p class="text-[11px] text-stone-400 mt-2 text-center md:text-left">
+          Desktop: <span class="text-stone-200">WASD / Arrows</span> to walk, drag to look • Or tap any place above to stroll there together.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       SCENE 3: THE COFFEE DATE
+  ====================================================================== -->
+  <section id="ui-scene-cafe" class="fixed inset-x-0 bottom-0 z-20 p-4 md:p-7 pointer-events-none hidden">
+    <div class="max-w-lg mx-auto glass-panel rounded-3xl p-5 md:p-6 pointer-events-auto">
+      <div class="flex items-center justify-between mb-1.5">
+        <span class="text-[11px] uppercase tracking-[0.2em] text-amber-300 font-medium">Scene 3 • Harbourside Outdoor Café</span>
+        <button id="btn-cafe-back-walk" class="text-xs text-stone-400 hover:text-amber-200 underline">
+          Explore Coast
+        </button>
+      </div>
+
+      <h2 class="serif-title text-2xl md:text-3xl text-amber-50 font-medium mb-1">
+        Our Coffee Date in Sydney
+      </h2>
+      <p id="cafe-dialogue-box" class="text-sm md:text-base text-stone-200 italic serif-title min-h-[2.5rem] flex items-center">
+        "Sitting across from you by the water feels like a dream come true, Pey."
+      </p>
+
+      <div class="mt-4 space-y-2.5">
+        <!-- Step 1 Button: Take a sip -->
+        <button id="btn-cafe-sip"
+          class="btn-warm w-full py-3 px-5 rounded-2xl text-sm md:text-base flex items-center justify-center gap-2">
+          <span>Take a sip</span>
+        </button>
+
+        <!-- Extra romantic options at the table -->
+        <div class="grid grid-cols-2 gap-2">
+          <button id="btn-cafe-hold-hands"
+            class="glass-pill py-2.5 px-4 rounded-xl text-xs md:text-sm text-stone-200 font-medium">
+            Hold Hands Across Table
+          </button>
+          <button id="btn-cafe-whisper"
+            class="glass-pill py-2.5 px-4 rounded-xl text-xs md:text-sm text-amber-200 font-medium">
+            Say "I'm in love, Pey"
+          </button>
+        </div>
+
+        <!-- Step 2 Button: Lean in for a kiss (Revealed after taking a sip, or clickable anytime) -->
+        <button id="btn-cafe-kiss"
+          class="btn-warm w-full py-3.5 px-5 rounded-2xl text-sm md:text-base hidden items-center justify-center gap-2">
+          <span>Lean in for a kiss</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       SCENE 4: THE KISS, SLEEP UNDER THE STARS & FINALE
+  ====================================================================== -->
+  <section id="ui-scene-finale" class="fixed inset-x-0 bottom-0 z-20 p-4 md:p-7 pointer-events-none hidden">
+    <div class="max-w-xl mx-auto glass-panel rounded-3xl p-6 md:p-8 pointer-events-auto text-center border border-amber-200/25">
+      <span class="text-[11px] uppercase tracking-[0.25em] text-amber-300/90 block mb-2">
+        Sydney, Australia • Forever &amp; Always
+      </span>
+
+      <h2 class="serif-title text-3xl md:text-5xl text-amber-50 font-semibold tracking-tight mb-2">
+        Until we make this real.
+      </h2>
+      <p class="serif-title italic text-xl md:text-2xl text-amber-200/95 mb-1">
+        "I'm so in love with you, Pey."
+      </p>
+      <p class="text-sm md:text-base text-stone-300 font-light mb-5">
+        I'm so glad it's you, Peyton.
+      </p>
+
+      <!-- Interactive Finale Pose Switcher: Kiss, Hug, Sleep Together Under the Stars, Explore -->
+      <div class="flex flex-wrap items-center justify-center gap-2 mb-5">
+        <button id="btn-finale-kiss"
+          class="glass-pill active-pill px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-amber-100">
+          Share a Kiss
+        </button>
+        <button id="btn-finale-hug"
+          class="glass-pill px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-stone-200">
+          Warm Hug
+        </button>
+        <button id="btn-finale-sleep"
+          class="glass-pill px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-stone-200">
+          Sleep Together Under the Stars
+        </button>
+        <button id="btn-finale-explore"
+          class="glass-pill px-4 py-2 rounded-xl text-xs md:text-sm font-medium text-stone-200">
+          Keep Exploring Sydney
+        </button>
+      </div>
+
+      <div class="pt-2 border-t border-stone-800/80 flex items-center justify-center">
+        <button id="btn-replay-trip"
+          class="text-xs md:text-sm text-stone-400 hover:text-amber-200 transition-colors flex items-center gap-1.5 py-1 px-3">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>Replay Trip</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       MAIN APPLICATION & PROCEDURAL 3D WORLD SCRIPT
+  ====================================================================== -->
+  <script>
+    /*************************************************************************
+     * 1. PROCEDURAL WEB AUDIO ENGINE (Zero external audio files)
+     *************************************************************************/
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+        this.ambientGain = null;
+        this.ambientNodes = [];
+        this.currentAmbientType = null;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            this.ctx = new AudioCtx();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleMute() {
+        this.init();
+        this.muted = !this.muted;
+        if (this.ambientGain && this.ctx) {
+          this.ambientGain.gain.setTargetAtTime(
+            this.muted ? 0 : 0.06,
+            this.ctx.currentTime,
+            0.2
+          );
+        }
+        return this.muted;
+      }
+
+      playChime(freq = 528, secondFreq = 660) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const notes = [freq, secondFreq];
+        notes.forEach((f, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, now + idx * 0.085);
+
+          gain.gain.setValueAtTime(0.0001, now + idx * 0.085);
+          gain.gain.linearRampToValueAtTime(0.065, now + idx * 0.085 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.085 + 0.75);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.085);
+          osc.stop(now + idx * 0.085 + 0.8);
+        });
+      }
+
+      playHeartArpeggio() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        // Warm Fmaj9 arpeggio
+        const chord = [349.23, 440.0, 523.25, 659.25, 783.99];
+        chord.forEach((f, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(f, now + i * 0.09);
+
+          gain.gain.setValueAtTime(0.0001, now + i * 0.09);
+          gain.gain.linearRampToValueAtTime(0.05, now + i * 0.09 + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.09 + 1.4);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.09);
+          osc.stop(now + i * 0.09 + 1.45);
+        });
+      }
+
+      playWarmFinaleChord() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const notes = [261.63, 329.63, 392.00, 493.88, 587.33]; // Cmaj9
+        notes.forEach((f) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, now);
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(0.04, now + 0.6);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 4.5);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 4.6);
+        });
+      }
+
+      startAmbient(type) {
+        this.init();
+        if (!this.ctx) return;
+        if (this.currentAmbientType === type) return;
+        this.stopAmbient();
+        this.currentAmbientType = type;
+
+        const now = this.ctx.currentTime;
+        this.ambientGain = this.ctx.createGain();
+        this.ambientGain.gain.setValueAtTime(0.0001, now);
+        this.ambientGain.gain.linearRampToValueAtTime(this.muted ? 0 : 0.055, now + 1.2);
+        this.ambientGain.connect(this.ctx.destination);
+
+        if (type === 'plane') {
+          // Gentle cozy cabin hum (filtered noise + warm low sine)
+          const bufferSize = this.ctx.sampleRate * 2;
+          const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          let lastOut = 0.0;
+          for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            output[i] = (lastOut + (0.02 * white)) / 1.02;
+            lastOut = output[i];
+            output[i] *= 1.5;
+          }
+          const whiteNoise = this.ctx.createBufferSource();
+          whiteNoise.buffer = noiseBuffer;
+          whiteNoise.loop = true;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(140, now);
+
+          const drone = this.ctx.createOscillator();
+          drone.type = 'sine';
+          drone.frequency.setValueAtTime(85, now);
+          const droneGain = this.ctx.createGain();
+          droneGain.gain.setValueAtTime(0.25, now);
+
+          whiteNoise.connect(filter);
+          filter.connect(this.ambientGain);
+          drone.connect(droneGain);
+          droneGain.connect(this.ambientGain);
+
+          whiteNoise.start(now);
+          drone.start(now);
+          this.ambientNodes.push(whiteNoise, drone);
+        } else if (type === 'harbour') {
+          // Gentle warm ocean breeze + soft pad
+          const osc1 = this.ctx.createOscillator();
+          const osc2 = this.ctx.createOscillator();
+          osc1.type = 'sine';
+          osc2.type = 'sine';
+          osc1.frequency.setValueAtTime(174.61, now); // F3
+          osc2.frequency.setValueAtTime(261.63, now); // C4
+
+          const subGain = this.ctx.createGain();
+          subGain.gain.setValueAtTime(0.18, now);
+
+          osc1.connect(subGain);
+          osc2.connect(subGain);
+          subGain.connect(this.ambientGain);
+
+          osc1.start(now);
+          osc2.start(now);
+          this.ambientNodes.push(osc1, osc2);
+        }
+      }
+
+      stopAmbient() {
+        this.ambientNodes.forEach(node => {
+          try { node.stop(); } catch (e) {}
+        });
+        this.ambientNodes = [];
+        this.currentAmbientType = null;
+      }
+    }
+
+    const sound = new SoundEngine();
+
+    /*************************************************************************
+     * 2. ROMANTIC PHRASES & WHISPER SYSTEM
+     *************************************************************************/
+    const ROMANTIC_WHISPERS = [
+      { speaker: "Dyko to Peyton", text: "\"I'm in love with you, Pey.\"" },
+      { speaker: "Dyko to Peyton", text: "\"I'm so in love with you, Pey — today and always.\"" },
+      { speaker: "Dyko to Peyton", text: "\"No distance could ever keep me from loving you, Pey.\"" },
+      { speaker: "Dyko to Peyton", text: "\"My favorite place in Australia is anywhere right next to you.\"" },
+      { speaker: "Dyko to Peyton", text: "\"You look so cute with your blonde hair in the Sydney sun, Pey.\"" },
+      { speaker: "Dyko to Peyton", text: "\"Holding you close feels like coming home. I'm in love, Pey.\"" },
+      { speaker: "Dyko to Peyton", text: "\"Every sunset we watch together is a dream come true.\"" }
+    ];
+    let whisperIndex = 0;
+    let toastTimer = null;
+
+    function showRomanticToast(customText = null, customSpeaker = "Dyko to Peyton", duration = 4200) {
+      const toast = document.getElementById('romantic-toast');
+      const speakerEl = document.getElementById('romantic-toast-speaker');
+      const textEl = document.getElementById('romantic-toast-text');
+
+      if (!customText) {
+        const item = ROMANTIC_WHISPERS[whisperIndex % ROMANTIC_WHISPERS.length];
+        whisperIndex++;
+        speakerEl.textContent = item.speaker;
+        textEl.textContent = item.text;
+      } else {
+        speakerEl.textContent = customSpeaker;
+        textEl.textContent = customText;
+      }
+
+      toast.classList.remove('opacity-0', '-translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', '-translate-y-2');
+      }, duration);
+    }
+
+    /*************************************************************************
+     * 3. THREE.JS CORE SCENE, LIGHTING & CAMERA CONTROLLER
+     *************************************************************************/
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x141118);
+    scene.fog = new THREE.FogExp2(0x141118, 0.012);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 300);
+    camera.position.set(0, 4, 12);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    container.appendChild(renderer.domElement);
+
+    // Lighting Setup
+    const ambientLight = new THREE.AmbientLight(0xffe8d6, 0.68);
+    scene.add(ambientLight);
+
+    const hemiLight = new THREE.HemisphereLight(0xfff5e4, 0x3b4d5e, 0.55);
+    hemiLight.position.set(0, 35, 0);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffdfa8, 1.35);
+    dirLight.position.set(18, 28, 16);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.near = 1;
+    dirLight.shadow.camera.far = 90;
+    const d = 28;
+    dirLight.shadow.camera.left = -d;
+    dirLight.shadow.camera.right = d;
+    dirLight.shadow.camera.top = d;
+    dirLight.shadow.camera.bottom = -d;
+    dirLight.shadow.bias = -0.0005;
+    scene.add(dirLight);
+
+    // Warm Romantic Glow Light (follows the couple during tender moments)
+    const coupleGlowLight = new THREE.PointLight(0xffb86c, 0, 8);
+    scene.add(coupleGlowLight);
+
+    /*************************************************************************
+     * 4. PROCEDURAL ROBLOX-STYLE BLOCKY CHARACTERS (DYKO & PEYTON)
+     *************************************************************************/
+    function createFaceTexture(skinHex, expression = 'normal', isFemale = false) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+
+      // Base Skin
+      ctx.fillStyle = skinHex;
+      ctx.fillRect(0, 0, 256, 256);
+
+      // Rosy Blush Cheeks
+      const blushAlpha = expression === 'love' || expression === 'sleep' ? 0.42 : 0.25;
+      ctx.fillStyle = `rgba(235, 115, 115, ${blushAlpha})`;
+      ctx.beginPath();
+      ctx.ellipse(62, 152, 22, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(194, 152, 22, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#231815';
+      ctx.fillStyle = '#231815';
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      if (expression === 'normal') {
+        // Cute Roblox Blocky Eyes
+        ctx.beginPath();
+        ctx.arc(82, 122, 13, 0, Math.PI * 2);
+        ctx.arc(174, 122, 13, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Subtle Eyelashes for Peyton
+        if (isFemale) {
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(67, 113);
+          ctx.lineTo(59, 107);
+          ctx.moveTo(189, 113);
+          ctx.lineTo(197, 107);
+          ctx.stroke();
+        }
+
+        // Cute White Eye Highlights
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(78, 117, 4.5, 0, Math.PI * 2);
+        ctx.arc(170, 117, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Warm Happy Smile
+        ctx.lineWidth = 7;
+        ctx.beginPath();
+        ctx.arc(128, 148, 22, 0.18 * Math.PI, 0.82 * Math.PI);
+        ctx.stroke();
+      } else if (expression === 'love') {
+        // Happy curved ^ ^ love eyes
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.arc(82, 128, 14, 1.15 * Math.PI, 1.85 * Math.PI);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(174, 128, 14, 1.15 * Math.PI, 1.85 * Math.PI);
+        ctx.stroke();
+
+        // Sweet kiss/love smile
+        ctx.lineWidth = 7;
+        ctx.beginPath();
+        ctx.arc(128, 148, 16, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.stroke();
+      } else if (expression === 'sleep') {
+        // Peaceful closed sleeping eyes
+        ctx.lineWidth = 7;
+        ctx.beginPath();
+        ctx.arc(82, 120, 14, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(174, 120, 14, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.stroke();
+
+        // Gentle serene smile
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(128, 152, 13, 0.2 * Math.PI, 0.8 * Math.PI);
+        ctx.stroke();
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.encoding = THREE.sRGBEncoding;
+      return tex;
+    }
+
+    function createBlockyCharacter(config) {
+      const root = new THREE.Group();
+
+      const skinColorHex = config.skinHex || '#F3CFB3';
+      const skinMat = new THREE.MeshStandardMaterial({ color: skinColorHex, roughness: 0.65 });
+      const hairMat = new THREE.MeshStandardMaterial({ color: config.hairColor, roughness: 0.55 });
+      const topMat = new THREE.MeshStandardMaterial({ color: config.topColor, roughness: 0.75 });
+      const trimMat = new THREE.MeshStandardMaterial({ color: config.trimColor || config.topColor, roughness: 0.7 });
+      const pantsMat = new THREE.MeshStandardMaterial({ color: config.pantsColor, roughness: 0.8 });
+      const shoeMat = new THREE.MeshStandardMaterial({ color: config.shoeColor || 0xebe5dc, roughness: 0.7 });
+
+      // Pre-generate 3 facial expressions for live mood changes
+      const faces = {
+        normal: createFaceTexture(skinColorHex, 'normal', config.isFemale),
+        love: createFaceTexture(skinColorHex, 'love', config.isFemale),
+        sleep: createFaceTexture(skinColorHex, 'sleep', config.isFemale)
+      };
+
+      const faceMat = new THREE.MeshStandardMaterial({
+        map: faces.normal,
+        roughness: 0.65
+      });
+
+      // Body Pivot (allows sitting, leaning, lying down to sleep)
+      const bodyPivot = new THREE.Group();
+      root.add(bodyPivot);
+
+      // Torso (Roblox blocky proportions)
+      const torsoGeo = new THREE.BoxGeometry(0.92, 1.05, 0.48);
+      const torso = new THREE.Mesh(torsoGeo, topMat);
+      torso.position.y = 1.42;
+      torso.castShadow = true;
+      torso.receiveShadow = true;
+      bodyPivot.add(torso);
+
+      // Collar / Sweater Neck Trim
+      const collarGeo = new THREE.BoxGeometry(0.54, 0.12, 0.51);
+      const collar = new THREE.Mesh(collarGeo, trimMat);
+      collar.position.set(0, 0.48, 0);
+      torso.add(collar);
+
+      // Head Pivot
+      const headPivot = new THREE.Group();
+      headPivot.position.set(0, 1.98, 0);
+      bodyPivot.add(headPivot);
+
+      // Head Cube with face texture on front (+Z)
+      const headMaterials = [
+        skinMat, // right
+        skinMat, // left
+        skinMat, // top
+        skinMat, // bottom
+        faceMat, // front (+Z)
+        skinMat  // back (-Z)
+      ];
+      const headGeo = new THREE.BoxGeometry(0.76, 0.76, 0.74);
+      const headMesh = new THREE.Mesh(headGeo, headMaterials);
+      headMesh.position.y = 0.38;
+      headMesh.castShadow = true;
+      headMesh.receiveShadow = true;
+      headPivot.add(headMesh);
+
+      // Hair Construction
+      const hairGroup = new THREE.Group();
+      headMesh.add(hairGroup);
+
+      if (!config.isFemale) {
+        // DYKO: Dark brown short styled blocky hair (#2C1E16)
+        const topHair = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.24, 0.82), hairMat);
+        topHair.position.set(0, 0.35, 0);
+        topHair.castShadow = true;
+        hairGroup.add(topHair);
+
+        // Styled front quiff / fringe swept slightly
+        const frontQuiff = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.19, 0.26), hairMat);
+        frontQuiff.position.set(0.03, 0.28, 0.34);
+        frontQuiff.rotation.z = -0.06;
+        hairGroup.add(frontQuiff);
+
+        const upperCrown = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.12, 0.68), hairMat);
+        upperCrown.position.set(0, 0.48, -0.02);
+        hairGroup.add(upperCrown);
+
+        // Back hair
+        const backHair = new THREE.Mesh(new THREE.BoxGeometry(0.83, 0.56, 0.18), hairMat);
+        backHair.position.set(0, 0.08, -0.34);
+        hairGroup.add(backHair);
+
+        // Left & Right sideburns / short sides
+        const sideL = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.38, 0.76), hairMat);
+        sideL.position.set(-0.38, 0.16, -0.02);
+        hairGroup.add(sideL);
+
+        const sideR = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.38, 0.76), hairMat);
+        sideR.position.set(0.38, 0.16, -0.02);
+        hairGroup.add(sideR);
+      } else {
+        // PEYTON: Blonde shoulder-length blocky hair (#E6C27A)
+        const highlightMat = new THREE.MeshStandardMaterial({ color: 0xf1d28f, roughness: 0.5 });
+
+        const topHair = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.24, 0.82), hairMat);
+        topHair.position.set(0, 0.35, 0);
+        topHair.castShadow = true;
+        hairGroup.add(topHair);
+
+        const crownHighlight = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.1, 0.72), highlightMat);
+        crownHighlight.position.set(0, 0.48, 0);
+        hairGroup.add(crownHighlight);
+
+        // Cute side-parted front bangs
+        const bangLeft = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.2, 0.16), hairMat);
+        bangLeft.position.set(-0.18, 0.24, 0.36);
+        bangLeft.rotation.z = 0.1;
+        hairGroup.add(bangLeft);
+
+        const bangRight = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.18, 0.16), highlightMat);
+        bangRight.position.set(0.23, 0.25, 0.36);
+        bangRight.rotation.z = -0.12;
+        hairGroup.add(bangRight);
+
+        // Back shoulder-length hair cascade
+        const backHair = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.96, 0.22), hairMat);
+        backHair.position.set(0, -0.1, -0.35);
+        backHair.castShadow = true;
+        hairGroup.add(backHair);
+
+        // Shoulder-length side locks framing her face & resting on shoulders
+        const lockL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.92, 0.72), hairMat);
+        lockL.position.set(-0.39, -0.08, -0.02);
+        lockL.castShadow = true;
+        hairGroup.add(lockL);
+
+        const lockR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.92, 0.72), hairMat);
+        lockR.position.set(0.39, -0.08, -0.02);
+        lockR.castShadow = true;
+        hairGroup.add(lockR);
+
+        // Front shoulder tips draping over sweater
+        const frontTipL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.52, 0.2), highlightMat);
+        frontTipL.position.set(-0.34, -0.28, 0.26);
+        hairGroup.add(frontTipL);
+
+        const frontTipR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.52, 0.2), highlightMat);
+        frontTipR.position.set(0.34, -0.28, 0.26);
+        hairGroup.add(frontTipR);
+      }
+
+      // Arms (Pivoted at shoulder for walking, holding hands, hugging, sipping coffee)
+      function createArm(isLeft) {
+        const pivot = new THREE.Group();
+        pivot.position.set(isLeft ? -0.63 : 0.63, 1.88, 0);
+
+        const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.74, 0.36), topMat);
+        sleeve.position.y = -0.35;
+        sleeve.castShadow = true;
+        pivot.add(sleeve);
+
+        const hand = new THREE.Mesh(new THREE.BoxGeometry(0.30, 0.24, 0.32), skinMat);
+        hand.position.y = -0.82;
+        hand.castShadow = true;
+        pivot.add(hand);
+
+        bodyPivot.add(pivot);
+        return { pivot, hand };
+      }
+
+      const leftArm = createArm(true);
+      const rightArm = createArm(false);
+
+      // Legs (Pivoted at hip for walking and sitting)
+      function createLeg(isLeft) {
+        const pivot = new THREE.Group();
+        pivot.position.set(isLeft ? -0.23 : 0.23, 0.92, 0);
+
+        const legMesh = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.76, 0.44), pantsMat);
+        legMesh.position.y = -0.38;
+        legMesh.castShadow = true;
+        pivot.add(legMesh);
+
+        const shoeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.43, 0.18, 0.52), shoeMat);
+        shoeMesh.position.set(0, -0.83, 0.04);
+        shoeMesh.castShadow = true;
+        pivot.add(shoeMesh);
+
+        bodyPivot.add(pivot);
+        return pivot;
+      }
+
+      const leftLeg = createLeg(true);
+      const rightLeg = createLeg(false);
+
+      function setExpression(expr) {
+        if (faces[expr]) {
+          faceMat.map = faces[expr];
+          faceMat.needsUpdate = true;
+        }
+      }
+
+      function resetPose() {
+        root.rotation.set(0, 0, 0);
+        bodyPivot.position.set(0, 0, 0);
+        bodyPivot.rotation.set(0, 0, 0);
+        headPivot.rotation.set(0, 0, 0);
+        leftArm.pivot.rotation.set(0, 0, 0);
+        rightArm.pivot.rotation.set(0, 0, 0);
+        leftLeg.rotation.set(0, 0, 0);
+        rightLeg.rotation.set(0, 0, 0);
+        setExpression('normal');
+      }
+
+      return {
+        root,
+        bodyPivot,
+        headPivot,
+        leftArm: leftArm.pivot,
+        rightArm: rightArm.pivot,
+        leftHand: leftArm.hand,
+        rightHand: rightArm.hand,
+        leftLeg,
+        rightLeg,
+        setExpression,
+        resetPose
+      };
+    }
+
+    // Instantiate Dyko & Peyton for the main world
+    const dyko = createBlockyCharacter({
+      name: 'Dyko',
+      isFemale: false,
+      hairColor: 0x2C1E16, // Dark brown short styled blocky hair (#2C1E16)
+      topColor: 0x3D463D,  // Muted olive/charcoal sweater
+      trimColor: 0xE6DFD3,
+      pantsColor: 0x22252A,
+      shoeColor: 0xEAE4DC,
+      skinHex: '#F0C8AA'
+    });
+
+    const peyton = createBlockyCharacter({
+      name: 'Peyton',
+      isFemale: true,
+      hairColor: 0xE6C27A, // Blonde shoulder-length blocky hair (#E6C27A)
+      topColor: 0xF2E8D5,  // Soft cream/beige sweater
+      trimColor: 0xDECFAF,
+      pantsColor: 0x7898B8, // Light denim pants
+      shoeColor: 0xF7F3EB,
+      skinHex: '#F6D5BC'
+    });
+
+    const coupleGroup = new THREE.Group();
+    coupleGroup.add(dyko.root);
+    coupleGroup.add(peyton.root);
+    scene.add(coupleGroup);
+
+    /*************************************************************************
+     * 5. FLOATING 3D HEARTS, STEAM & ZZZ PARTICLE SYSTEMS
+     *************************************************************************/
+    const particleGroup = new THREE.Group();
+    scene.add(particleGroup);
+    const activeParticles = [];
+
+    function createBlockyHeartMesh(color = 0xff758f, scale = 1) {
+      const group = new THREE.Group();
+      const mat = new THREE.MeshStandardMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: 0.45,
+        roughness: 0.3
+      });
+      // Cute 3-block rotated voxel heart
+      const center = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.12), mat);
+      const lobeL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.12), mat);
+      lobeL.position.set(0, 0.18, 0);
+      const lobeR = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.22, 0.12), mat);
+      lobeR.position.set(0.18, 0, 0);
+      group.add(center, lobeL, lobeR);
+      group.rotation.z = Math.PI / 4;
+      group.scale.setScalar(scale);
+      return group;
+    }
+
+    function spawnHeartParticle(worldPos, count = 1, scale = 0.85) {
+      for (let i = 0; i < count; i++) {
+        const colors = [0xff7a8a, 0xffb36b, 0xffd166, 0xf48fb1];
+        const heart = createBlockyHeartMesh(colors[i % colors.length], scale * (0.75 + Math.random() * 0.4));
+        heart.position.set(
+          worldPos.x + (Math.random() - 0.5) * 1.1,
+          worldPos.y + (Math.random() * 0.5),
+          worldPos.z + (Math.random() - 0.5) * 0.9
+        );
+        particleGroup.add(heart);
+        activeParticles.push({
+          mesh: heart,
+          vy: 0.7 + Math.random() * 0.6,
+          vx: (Math.random() - 0.5) * 0.35,
+          vz: (Math.random() - 0.5) * 0.35,
+          life: 0,
+          maxLife: 2.2 + Math.random() * 0.8,
+          initialScale: heart.scale.x
+        });
+      }
+    }
+
+    function updateParticles(dt) {
+      for (let i = activeParticles.length - 1; i >= 0; i--) {
+        const p = activeParticles[i];
+        p.life += dt;
+        p.mesh.position.y += p.vy * dt;
+        p.mesh.position.x += Math.sin(p.life * 3 + i) * 0.25 * dt + p.vx * dt;
+        p.mesh.position.z += p.vz * dt;
+        p.mesh.rotation.y += dt * 1.4;
+
+        const progress = p.life / p.maxLife;
+        const s = p.initialScale * (1 - Math.pow(progress, 2));
+        p.mesh.scale.setScalar(Math.max(0.001, s));
+
+        if (p.life >= p.maxLife) {
+          particleGroup.remove(p.mesh);
+          activeParticles.splice(i, 1);
+        }
+      }
+    }
+
+    /*************************************************************************
+     * 6. SCENE 0: INTRO 3D ROTATING GLOBE & STARRY SKY
+     *************************************************************************/
+    const introWorld = new THREE.Group();
+    scene.add(introWorld);
+
+    function buildIntroScene() {
+      // Low-poly stylized Earth Globe
+      const oceanMat = new THREE.MeshStandardMaterial({
+        color: 0x1e354d,
+        roughness: 0.6,
+        metalness: 0.1,
+        flatShading: true
+      });
+      const globe = new THREE.Mesh(new THREE.IcosahedronGeometry(2.6, 2), oceanMat);
+      introWorld.add(globe);
+
+      // Blocky low-poly continents (including Australia highlighted in warm gold!)
+      const landMat = new THREE.MeshStandardMaterial({ color: 0x456956, roughness: 0.75 });
+      const ausMat = new THREE.MeshStandardMaterial({
+        color: 0xe6b875,
+        emissive: 0xd49a4e,
+        emissiveIntensity: 0.35,
+        roughness: 0.5
+      });
+
+      const continentCoords = [
+        { lat: -25, lon: 135, sx: 0.75, sy: 0.55, sz: 0.3, mat: ausMat }, // Australia!
+        { lat: 25, lon: -100, sx: 0.9, sy: 0.8, sz: 0.25, mat: landMat }, // Americas
+        { lat: -15, lon: -60, sx: 0.65, sy: 0.9, sz: 0.25, mat: landMat },
+        { lat: 45, lon: 15, sx: 0.85, sy: 0.65, sz: 0.25, mat: landMat },
+        { lat: 5, lon: 25, sx: 0.75, sy: 0.85, sz: 0.25, mat: landMat },
+        { lat: 35, lon: 105, sx: 1.0, sy: 0.75, sz: 0.25, mat: landMat }
+      ];
+
+      continentCoords.forEach(c => {
+        const phi = (90 - c.lat) * (Math.PI / 180);
+        const theta = (c.lon + 180) * (Math.PI / 180);
+        const r = 2.55;
+        const block = new THREE.Mesh(new THREE.BoxGeometry(c.sx, c.sy, c.sz), c.mat);
+        block.position.set(
+          -r * Math.sin(phi) * Math.cos(theta),
+          r * Math.cos(phi),
+          r * Math.sin(phi) * Math.sin(theta)
+        );
+        block.lookAt(0, 0, 0);
+        globe.add(block);
+      });
+
+      // Glowing flight arc around globe
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0xf3c687,
+        transparent: true,
+        opacity: 0.35
+      });
+      const orbitRing = new THREE.Mesh(new THREE.TorusGeometry(3.15, 0.018, 8, 80), ringMat);
+      orbitRing.rotation.x = Math.PI / 3;
+      orbitRing.rotation.y = Math.PI / 6;
+      introWorld.add(orbitRing);
+
+      // Tiny airplane orbiting the globe
+      const miniPlane = createBlockyHeartMesh(0xffc978, 0.9);
+      miniPlane.position.set(3.15, 0, 0);
+      orbitRing.add(miniPlane);
+
+      // Starfield
+      const starGeo = new THREE.BufferGeometry();
+      const starCount = 320;
+      const positions = new Float32Array(starCount * 3);
+      for (let i = 0; i < starCount; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 90;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 60 + 10;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 90 - 15;
+      }
+      starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const starMat = new THREE.PointsMaterial({ color: 0xfff0d4, size: 0.22, transparent: true, opacity: 0.8 });
+      const stars = new THREE.Points(starGeo, starMat);
+      introWorld.add(stars);
+
+      introWorld.userData = { globe, orbitRing };
+    }
+    buildIntroScene();
+
+    /*************************************************************************
+     * 7. SCENE 1: THE CUTAWAY BLOCKY AIRPLANE & GOLDEN HOUR CLOUDS
+     *************************************************************************/
+    const flightWorld = new THREE.Group();
+    flightWorld.visible = false;
+    scene.add(flightWorld);
+
+    const planeGroup = new THREE.Group();
+    flightWorld.add(planeGroup);
+    const flightClouds = [];
+
+    function buildFlightScene() {
+      const bodyWhiteMat = new THREE.MeshStandardMaterial({ color: 0xf6f1e9, roughness: 0.5 });
+      const trimGoldMat = new THREE.MeshStandardMaterial({ color: 0xd99e5b, roughness: 0.4 });
+      const cabinFloorMat = new THREE.MeshStandardMaterial({ color: 0x463b33, roughness: 0.8 });
+      const cabinWallMat = new THREE.MeshStandardMaterial({ color: 0xded5c8, roughness: 0.65 });
+      const seatMat = new THREE.MeshStandardMaterial({ color: 0x8c5843, roughness: 0.7 });
+      const glassMat = new THREE.MeshStandardMaterial({
+        color: 0xa8d5f2,
+        transparent: true,
+        opacity: 0.45,
+        roughness: 0.2
+      });
+
+      // Cabin Floor (Open-top cutaway so Dyko & Peyton are clearly visible!)
+      const floor = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.35, 7.6), cabinFloorMat);
+      floor.position.set(0, -0.18, 0);
+      floor.receiveShadow = true;
+      planeGroup.add(floor);
+
+      // Lower Fuselage Belly
+      const belly = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.7, 7.8), bodyWhiteMat);
+      belly.position.set(0, -0.65, 0);
+      belly.castShadow = true;
+      planeGroup.add(belly);
+
+      // Gold Airline Stripe along fuselage side
+      const stripe = new THREE.Mesh(new THREE.BoxGeometry(4.68, 0.22, 7.85), trimGoldMat);
+      stripe.position.set(0, -0.45, 0);
+      planeGroup.add(stripe);
+
+      // Back Cabin Wall with Cute Windows (Cutaway open towards +X/+Z camera)
+      const backWall = new THREE.Mesh(new THREE.BoxGeometry(0.28, 2.3, 7.4), cabinWallMat);
+      backWall.position.set(-2.1, 1.1, 0);
+      backWall.receiveShadow = true;
+      planeGroup.add(backWall);
+
+      // Cabin Windows along Back Wall
+      for (let z = -2.2; z <= 2.2; z += 1.45) {
+        const winFrame = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.75, 0.62), trimGoldMat);
+        winFrame.position.set(-2.1, 1.35, z);
+        planeGroup.add(winFrame);
+
+        const winPane = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.58, 0.48), glassMat);
+        winPane.position.set(-2.1, 1.35, z);
+        planeGroup.add(winPane);
+      }
+
+      // Low Cutaway Front Rail so we can see right inside
+      const frontLowSide = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.65, 7.4), bodyWhiteMat);
+      frontLowSide.position.set(2.15, 0.3, 0);
+      planeGroup.add(frontLowSide);
+
+      // Airplane Nose / Cockpit Front (+Z is forward flight direction)
+      const noseBase = new THREE.Mesh(new THREE.BoxGeometry(4.4, 1.6, 1.8), bodyWhiteMat);
+      noseBase.position.set(0, 0.45, 4.6);
+      planeGroup.add(noseBase);
+
+      const noseTip = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.0, 1.2), bodyWhiteMat);
+      noseTip.position.set(0, 0.2, 5.8);
+      planeGroup.add(noseTip);
+
+      const windshield = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.75, 0.9), glassMat);
+      windshield.position.set(0, 1.15, 4.3);
+      windshield.rotation.x = 0.35;
+      planeGroup.add(windshield);
+
+      // Airplane Tail Cone & Vertical Stabilizer Fin (-Z)
+      const tailBase = new THREE.Mesh(new THREE.BoxGeometry(4.0, 1.6, 2.0), bodyWhiteMat);
+      tailBase.position.set(0, 0.45, -4.6);
+      planeGroup.add(tailBase);
+
+      const tailFin = new THREE.Mesh(new THREE.BoxGeometry(0.35, 2.8, 1.9), trimGoldMat);
+      tailFin.position.set(0, 2.2, -5.0);
+      tailFin.rotation.x = -0.22;
+      planeGroup.add(tailFin);
+
+      const hStab = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.2, 1.3), bodyWhiteMat);
+      hStab.position.set(0, 1.1, -5.1);
+      planeGroup.add(hStab);
+
+      // Swept Main Wings & Jet Engines
+      const wingL = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.22, 2.3), bodyWhiteMat);
+      wingL.position.set(-5.2, -0.5, -0.2);
+      wingL.rotation.y = 0.14;
+      planeGroup.add(wingL);
+
+      const wingR = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.22, 2.3), bodyWhiteMat);
+      wingR.position.set(5.2, -0.5, -0.2);
+      wingR.rotation.y = -0.14;
+      planeGroup.add(wingR);
+
+      // Jet Engines under wings
+      [-4.2, 4.2].forEach(xPos => {
+        const eng = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.42, 1.4, 14), trimGoldMat);
+        eng.rotation.x = Math.PI / 2;
+        eng.position.set(xPos, -0.95, 0.3);
+        planeGroup.add(eng);
+      });
+
+      // Cozy Double Passenger Seats for Dyko & Peyton (Row 2A & 2B)
+      function createSeatRow(zPos) {
+        const row = new THREE.Group();
+        row.position.set(0, 0, zPos);
+
+        const base = new THREE.Mesh(new THREE.BoxGeometry(2.65, 0.42, 0.95), seatMat);
+        base.position.set(-0.2, 0.35, 0);
+        base.castShadow = true;
+        row.add(base);
+
+        const backrest = new THREE.Mesh(new THREE.BoxGeometry(2.65, 1.25, 0.28), seatMat);
+        backrest.position.set(-0.2, 1.05, -0.38);
+        backrest.rotation.x = -0.08;
+        backrest.castShadow = true;
+        row.add(backrest);
+
+        // Headrest pillows
+        [-0.85, 0.45].forEach(x => {
+          const pillow = new THREE.Mesh(
+            new THREE.BoxGeometry(0.85, 0.32, 0.12),
+            new THREE.MeshStandardMaterial({ color: 0xf3ead8, roughness: 0.6 })
+          );
+          pillow.position.set(x, 1.42, -0.22);
+          row.add(pillow);
+        });
+
+        // Armrests
+        [-1.55, 1.15].forEach(x => {
+          const arm = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 0.85), trimGoldMat);
+          arm.position.set(x, 0.72, 0.05);
+          row.add(arm);
+        });
+
+        planeGroup.add(row);
+      }
+
+      createSeatRow(0.1);   // Dyko & Peyton's cozy row!
+      createSeatRow(-2.1);  // Back row
+      createSeatRow(2.2);   // Front row
+
+      // Warm Cabin Light inside airplane
+      const cabinLight = new THREE.PointLight(0xffcfa0, 0.9, 12);
+      cabinLight.position.set(0, 2.6, 0.5);
+      planeGroup.add(cabinLight);
+
+      // Fluffy Blocky Golden-Hour Clouds passing by
+      const cloudMat = new THREE.MeshStandardMaterial({
+        color: 0xfff5eb,
+        roughness: 0.9,
+        emissive: 0xf4a261,
+        emissiveIntensity: 0.12
+      });
+
+      for (let i = 0; i < 24; i++) {
+        const cloud = new THREE.Group();
+        const blocks = 3 + Math.floor(Math.random() * 3);
+        for (let b = 0; b < blocks; b++) {
+          const w = 1.6 + Math.random() * 2.2;
+          const h = 0.8 + Math.random() * 1.1;
+          const d = 1.6 + Math.random() * 2.2;
+          const puff = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), cloudMat);
+          puff.position.set((b - 1) * 1.1, (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.8);
+          cloud.add(puff);
+        }
+
+        // Keep clouds outside the cabin path
+        const side = i % 2 === 0 ? -1 : 1;
+        cloud.position.set(
+          side * (6.5 + Math.random() * 14),
+          (Math.random() - 0.5) * 10 - 1.5,
+          (Math.random() - 0.5) * 60
+        );
+        flightWorld.add(cloud);
+        flightClouds.push({
+          mesh: cloud,
+          speed: 5.5 + Math.random() * 4.5
+        });
+      }
+    }
+    buildFlightScene();
+
+    /*************************************************************************
+     * 8. SCENE 2, 3 & 4: AUSTRALIA HARBOUR DIORAMA (OPERA HOUSE, BONDI & KOALAS,
+     *    STARLIGHT SLEEP CABANA, AND SEASIDE OUTDOOR CAFÉ)
+     *************************************************************************/
+    const australiaWorld = new THREE.Group();
+    australiaWorld.visible = false;
+    scene.add(australiaWorld);
+
+    // Key references for animations in Australia
+    let waterMesh = null;
+    let sailboatGroup = null;
+    let cafeMarkerRing = null;
+    let dykoCupGroup = null;
+    let peytonCupGroup = null;
+    const steamParticles = [];
+    let cuddleBlanketMesh = null;
+    let koalaGroup = null;
+
+    // 4 Australian Destinations Coordinates
+    const AUSTRALIA_SPOTS = {
+      opera: {
+        name: "Sydney Opera House Lookout",
+        desc: "\"Looking at the Sydney Opera House with you... I'm in love with you, Pey.\"",
+        x: -7.5,
+        z: -2.6,
+        facing: Math.PI
+      },
+      bondi: {
+        name: "Bondi Beach & Koala Grove",
+        desc: "\"Even the Australian koalas can tell how crazy in love with you I am, Pey.\"",
+        x: -12.5,
+        z: 3.0,
+        facing: -Math.PI / 2
+      },
+      cabana: {
+        name: "Starlight Harbour Daybed",
+        desc: "\"Falling asleep in your arms under the Australian stars is my favorite place to be.\"",
+        x: 1.5,
+        z: -2.2,
+        facing: Math.PI
+      },
+      cafe: {
+        name: "Harbourside Outdoor Café",
+        desc: "\"Our table by the water is waiting for us, Pey.\"",
+        x: 9.5,
+        z: 0.2,
+        facing: Math.PI / 2
+      }
+    };
+
+    function buildAustraliaScene() {
+      // 1. Calm Blue Sydney Harbour Water
+      const waterGeo = new THREE.BoxGeometry(140, 1.2, 120);
+      const waterMat = new THREE.MeshStandardMaterial({
+        color: 0x26688a,
+        roughness: 0.25,
+        metalness: 0.15
+      });
+      waterMesh = new THREE.Mesh(waterGeo, waterMat);
+      waterMesh.position.set(0, -1.1, -20);
+      waterMesh.receiveShadow = true;
+      australiaWorld.add(waterMesh);
+
+      // 2. Main Timber Harbour Boardwalk & Promenade
+      const woodMat = new THREE.MeshStandardMaterial({ color: 0x8b6748, roughness: 0.8 });
+      const darkWoodMat = new THREE.MeshStandardMaterial({ color: 0x5c4028, roughness: 0.85 });
+      const stoneMat = new THREE.MeshStandardMaterial({ color: 0xd8cfc2, roughness: 0.75 });
+
+      const boardwalk = new THREE.Mesh(new THREE.BoxGeometry(28, 0.8, 11), woodMat);
+      boardwalk.position.set(-0.5, -0.4, 1.5);
+      boardwalk.receiveShadow = true;
+      australiaWorld.add(boardwalk);
+
+      // Plank lines on boardwalk
+      for (let x = -13.5; x <= 12.5; x += 1.2) {
+        const seam = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.82, 11.02), darkWoodMat);
+        seam.position.set(x, -0.4, 1.5);
+        australiaWorld.add(seam);
+      }
+
+      // Stone Sea Wall Edge
+      const seaWall = new THREE.Mesh(new THREE.BoxGeometry(28.4, 1.0, 0.7), stoneMat);
+      seaWall.position.set(-0.5, -0.35, -4.0);
+      seaWall.receiveShadow = true;
+      australiaWorld.add(seaWall);
+
+      // Harbour Bollards & Warm Lantern Posts along the boardwalk
+      for (let x = -12; x <= 12; x += 4) {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.28, 1.15, 0.28), darkWoodMat);
+        post.position.set(x, 0.55, -3.9);
+        post.castShadow = true;
+        australiaWorld.add(post);
+
+        if (x % 8 === 0) {
+          const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 3.3, 8), darkWoodMat);
+          pole.position.set(x, 1.65, -3.9);
+          australiaWorld.add(pole);
+
+          const lantern = new THREE.Mesh(
+            new THREE.BoxGeometry(0.42, 0.48, 0.42),
+            new THREE.MeshStandardMaterial({
+              color: 0xffe4a8,
+              emissive: 0xffb347,
+              emissiveIntensity: 0.9
+            })
+          );
+          lantern.position.set(x, 3.35, -3.9);
+          australiaWorld.add(lantern);
+        }
+      }
+
+      // 3. ICONIC LOW-POLY SYDNEY OPERA HOUSE (In the Harbour Background)
+      const operaGroup = new THREE.Group();
+      operaGroup.position.set(-8.5, -0.3, -21);
+      australiaWorld.add(operaGroup);
+
+      // Sandstone Podium / Concourse
+      const podiumMat = new THREE.MeshStandardMaterial({ color: 0xd6c7b2, roughness: 0.7 });
+      const podium = new THREE.Mesh(new THREE.BoxGeometry(19, 1.8, 11), podiumMat);
+      podium.position.set(0, 0.5, 0);
+      podium.castShadow = true;
+      podium.receiveShadow = true;
+      operaGroup.add(podium);
+
+      const steps = new THREE.Mesh(new THREE.BoxGeometry(15, 0.8, 3.5), podiumMat);
+      steps.position.set(0, 0.1, 6.2);
+      operaGroup.add(steps);
+
+      // Iconic White Opera House Shell Vaults (Sculpted overlapping low-poly sails!)
+      const shellMat = new THREE.MeshStandardMaterial({
+        color: 0xfdfbf7,
+        roughness: 0.3,
+        metalness: 0.05
+      });
+      const shellInnerMat = new THREE.MeshStandardMaterial({ color: 0x6e5a47, roughness: 0.7 });
+
+      function createOperaShellCluster(offsetX, scale = 1) {
+        const cluster = new THREE.Group();
+        cluster.position.set(offsetX, 1.4, 0);
+        cluster.scale.setScalar(scale);
+
+        const shellConfigs = [
+          { z: 2.2, h: 4.2, w: 2.6, tilt: 0.38 },
+          { z: 0.7, h: 5.6, w: 3.1, tilt: 0.28 },
+          { z: -1.0, h: 6.8, w: 3.5, tilt: 0.18 },
+          { z: -2.6, h: 4.8, w: 2.8, tilt: -0.25 }
+        ];
+
+        shellConfigs.forEach(cfg => {
+          const shellHolder = new THREE.Group();
+          shellHolder.position.set(0, 0, cfg.z);
+          shellHolder.rotation.x = cfg.tilt;
+
+          // Tapered white triangular vault
+          const cone = new THREE.Mesh(new THREE.ConeGeometry(cfg.w, cfg.h, 4), shellMat);
+          cone.position.y = cfg.h * 0.45;
+          cone.rotation.y = Math.PI / 4;
+          cone.scale.set(0.72, 1, 1.15);
+          cone.castShadow = true;
+          shellHolder.add(cone);
+
+          // Glazed dark acoustic opening face
+          const glassOpening = new THREE.Mesh(new THREE.ConeGeometry(cfg.w * 0.75, cfg.h * 0.82, 4), shellInnerMat);
+          glassOpening.position.set(0, cfg.h * 0.4, 0.22 * Math.sign(cfg.tilt));
+          glassOpening.rotation.y = Math.PI / 4;
+          glassOpening.scale.set(0.65, 1, 0.9);
+          shellHolder.add(glassOpening);
+
+          cluster.add(shellHolder);
+        });
+
+        operaGroup.add(cluster);
+      }
+
+      createOperaShellCluster(-3.8, 1.05); // Main Concert Hall shells
+      createOperaShellCluster(2.6, 0.88);  // Joan Sutherland Theatre shells
+      createOperaShellCluster(6.8, 0.52);  // Bennelong Restaurant shell
+
+      // Cute Sailboat gently floating in Sydney Harbour
+      sailboatGroup = new THREE.Group();
+      sailboatGroup.position.set(4.5, -0.35, -14);
+      const hull = new THREE.Mesh(
+        new THREE.BoxGeometry(2.6, 0.45, 0.9),
+        new THREE.MeshStandardMaterial({ color: 0xf4efe6, roughness: 0.5 })
+      );
+      sailboatGroup.add(hull);
+      const sail = new THREE.Mesh(
+        new THREE.ConeGeometry(1.1, 2.8, 3),
+        new THREE.MeshStandardMaterial({ color: 0xfff8ed, roughness: 0.4 })
+      );
+      sail.position.set(0, 1.6, 0);
+      sail.scale.set(1, 1, 0.25);
+      sailboatGroup.add(sail);
+      australiaWorld.add(sailboatGroup);
+
+      // 4. SPOT 1: OPERA HOUSE LOOKOUT DECK
+      const lookoutPlatform = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.14, 3.2), stoneMat);
+      lookoutPlatform.position.set(-7.5, 0.05, -2.4);
+      lookoutPlatform.receiveShadow = true;
+      australiaWorld.add(lookoutPlatform);
+
+      // Spot 1 Beacon Ring
+      const spot1Ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.65, 0.85, 24),
+        new THREE.MeshBasicMaterial({ color: 0xf6c97b, side: THREE.DoubleSide })
+      );
+      spot1Ring.rotation.x = -Math.PI / 2;
+      spot1Ring.position.set(-7.5, 0.14, -2.5);
+      australiaWorld.add(spot1Ring);
+
+      // 5. SPOT 2: BONDI BEACH COVE & KOALA EUCALYPTUS SANCTUARY (West End)
+      const sandMat = new THREE.MeshStandardMaterial({ color: 0xedd3a4, roughness: 0.9 });
+      const beachSand = new THREE.Mesh(new THREE.BoxGeometry(10, 0.72, 11), sandMat);
+      beachSand.position.set(-16.5, -0.42, 1.5);
+      beachSand.receiveShadow = true;
+      australiaWorld.add(beachSand);
+
+      // Striped Surfboard standing in the sand
+      const surfboard = new THREE.Mesh(
+        new THREE.BoxGeometry(0.55, 2.1, 0.14),
+        new THREE.MeshStandardMaterial({ color: 0xe76f51, roughness: 0.4 })
+      );
+      surfboard.position.set(-16.2, 0.95, -1.2);
+      surfboard.rotation.z = 0.15;
+      surfboard.rotation.y = 0.4;
+      surfboard.castShadow = true;
+      australiaWorld.add(surfboard);
+
+      // Eucalyptus Gum Tree with Procedural Blocky Australian Koala!
+      const treeGroup = new THREE.Group();
+      treeGroup.position.set(-15.5, 0, 4.2);
+      australiaWorld.add(treeGroup);
+
+      const trunkMat = new THREE.MeshStandardMaterial({ color: 0xb5a392, roughness: 0.85 });
+      const trunk = new THREE.Mesh(new THREE.BoxGeometry(0.65, 3.8, 0.65), trunkMat);
+      trunk.position.y = 1.9;
+      trunk.castShadow = true;
+      treeGroup.add(trunk);
+
+      const leafMat = new THREE.MeshStandardMaterial({ color: 0x5c8566, roughness: 0.75 });
+      [
+        { x: 0, y: 4.1, z: 0, s: 2.3 },
+        { x: -1.1, y: 3.5, z: 0.4, s: 1.6 },
+        { x: 1.1, y: 3.6, z: -0.3, s: 1.7 }
+      ].forEach(c => {
+        const canopy = new THREE.Mesh(new THREE.BoxGeometry(c.s, c.s * 0.7, c.s), leafMat);
+        canopy.position.set(c.x, c.y, c.z);
+        canopy.castShadow = true;
+        treeGroup.add(canopy);
+      });
+
+      // Cute Blocky Koala hugging the eucalyptus tree!
+      koalaGroup = new THREE.Group();
+      koalaGroup.position.set(0.38, 2.1, 0.22);
+      koalaGroup.rotation.y = 0.5;
+      const koalaGray = new THREE.MeshStandardMaterial({ color: 0x8d949e, roughness: 0.8 });
+      const koalaWhite = new THREE.MeshStandardMaterial({ color: 0xf2f0eb, roughness: 0.8 });
+      const koalaNoseMat = new THREE.MeshStandardMaterial({ color: 0x242428, roughness: 0.5 });
+
+      const kBody = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.55, 0.42), koalaGray);
+      koalaGroup.add(kBody);
+      const kHead = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.44, 0.44), koalaGray);
+      kHead.position.set(0.05, 0.46, 0);
+      koalaGroup.add(kHead);
+      const kEarL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.24, 0.24), koalaWhite);
+      kEarL.position.set(0.05, 0.65, 0.26);
+      const kEarR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.24, 0.24), koalaWhite);
+      kEarR.position.set(0.05, 0.65, -0.26);
+      const kNose = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.18, 0.14), koalaNoseMat);
+      kNose.position.set(0.28, 0.46, 0);
+      koalaGroup.add(kEarL, kEarR, kNose);
+      treeGroup.add(koalaGroup);
+
+      // 6. SPOT 3: STARLIGHT SLEEP & CUDDLE CABANA (Cozy Sunset Daybed by the Harbour)
+      const cabanaGroup = new THREE.Group();
+      cabanaGroup.position.set(1.5, 0, -2.0);
+      australiaWorld.add(cabanaGroup);
+
+      // Raised Cozy Deck
+      const cabanaDeck = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.22, 3.6), darkWoodMat);
+      cabanaDeck.position.y = 0.11;
+      cabanaDeck.receiveShadow = true;
+      cabanaGroup.add(cabanaDeck);
+
+      // Plush Double Mattress / Daybed
+      const mattressMat = new THREE.MeshStandardMaterial({ color: 0xf7f2e8, roughness: 0.7 });
+      const mattress = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.36, 2.5), mattressMat);
+      mattress.position.set(0, 0.38, -0.1);
+      mattress.castShadow = true;
+      mattress.receiveShadow = true;
+      cabanaGroup.add(mattress);
+
+      // Headboard & Two Fluffy Pillows
+      const headboard = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.95, 0.24), darkWoodMat);
+      headboard.position.set(0, 0.72, -1.35);
+      cabanaGroup.add(headboard);
+
+      const pillowMat = new THREE.MeshStandardMaterial({ color: 0xfbe8c8, roughness: 0.6 });
+      [-0.62, 0.62].forEach(px => {
+        const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.22, 0.55), pillowMat);
+        pillow.position.set(px, 0.64, -0.92);
+        pillow.rotation.x = 0.18;
+        cabanaGroup.add(pillow);
+      });
+
+      // Warm Woven Cuddle Blanket (Expands over Dyko & Peyton when sleeping together!)
+      const blanketMat = new THREE.MeshStandardMaterial({ color: 0xd99b66, roughness: 0.8 });
+      cuddleBlanketMesh = new THREE.Mesh(new THREE.BoxGeometry(2.55, 0.25, 1.45), blanketMat);
+      cuddleBlanketMesh.position.set(0, 0.54, 0.35);
+      cuddleBlanketMesh.castShadow = true;
+      cabanaGroup.add(cuddleBlanketMesh);
+
+      // 4 Pergola Corner Posts & Fairy String Lights
+      [
+        [-1.8, -1.5], [1.8, -1.5], [-1.8, 1.5], [1.8, 1.5]
+      ].forEach(([px, pz]) => {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.9, 0.18), darkWoodMat);
+        post.position.set(px, 1.5, pz);
+        post.castShadow = true;
+        cabanaGroup.add(post);
+      });
+
+      // 7. SPOT 4: SEASIDE OUTDOOR CAFÉ (East End of Boardwalk)
+      const cafeGroup = new THREE.Group();
+      cafeGroup.position.set(10.8, 0, 0.2);
+      australiaWorld.add(cafeGroup);
+
+      // Café Terrace Platform
+      const cafeDeck = new THREE.Mesh(new THREE.BoxGeometry(6.8, 0.24, 7.2), darkWoodMat);
+      cafeDeck.position.set(0, 0.12, 0);
+      cafeDeck.receiveShadow = true;
+      cafeGroup.add(cafeDeck);
+
+      // Glowing Arrival Marker Ring in front of the Café
+      const markerGroup = new THREE.Group();
+      markerGroup.position.set(-2.2, 0.26, 0);
+      cafeGroup.add(markerGroup);
+
+      const outerRing = new THREE.Mesh(
+        new THREE.RingGeometry(0.85, 1.1, 32),
+        new THREE.MeshBasicMaterial({ color: 0xffc86b, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+      );
+      outerRing.rotation.x = -Math.PI / 2;
+      markerGroup.add(outerRing);
+
+      const innerDisc = new THREE.Mesh(
+        new THREE.CircleGeometry(0.75, 32),
+        new THREE.MeshBasicMaterial({ color: 0xffd88a, side: THREE.DoubleSide, transparent: true, opacity: 0.25 })
+      );
+      innerDisc.rotation.x = -Math.PI / 2;
+      markerGroup.add(innerDisc);
+      cafeMarkerRing = markerGroup;
+
+      // Wooden Bistro Table (Center of Scene 3 Coffee Date!)
+      const tableGroup = new THREE.Group();
+      tableGroup.position.set(0.4, 0.24, 0);
+      cafeGroup.add(tableGroup);
+
+      const tableTop = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.05, 1.05, 0.12, 16),
+        new THREE.MeshStandardMaterial({ color: 0xa47449, roughness: 0.65 })
+      );
+      tableTop.position.y = 1.05;
+      tableTop.castShadow = true;
+      tableTop.receiveShadow = true;
+      tableGroup.add(tableTop);
+
+      const tableLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 1.02, 10), darkWoodMat);
+      tableLeg.position.y = 0.51;
+      tableGroup.add(tableLeg);
+
+      const tableBase = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.6, 0.08, 12), darkWoodMat);
+      tableBase.position.y = 0.04;
+      tableGroup.add(tableBase);
+
+      // Café Umbrella pole & warm cream canopy
+      const umbrellaPole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.6, 8), darkWoodMat);
+      umbrellaPole.position.set(0, 1.8, -1.65);
+      tableGroup.add(umbrellaPole);
+
+      const umbrellaTop = new THREE.Mesh(
+        new THREE.ConeGeometry(2.6, 0.95, 8),
+        new THREE.MeshStandardMaterial({ color: 0xf4ead8, roughness: 0.7 })
+      );
+      umbrellaTop.position.set(0, 3.65, -1.65);
+      umbrellaTop.castShadow = true;
+      tableGroup.add(umbrellaTop);
+
+      // Two Wooden Café Chairs (Facing each other along X axis: -1.35 and +1.35)
+      function createCafeChair(xOffset, facingAngle) {
+        const chair = new THREE.Group();
+        chair.position.set(xOffset, 0, 0);
+        chair.rotation.y = facingAngle;
+
+        const seat = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.12, 0.95), woodMat);
+        seat.position.y = 0.58;
+        seat.castShadow = true;
+        chair.add(seat);
+
+        const back = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.85, 0.95), woodMat);
+        back.position.set(-0.42, 1.02, 0);
+        back.castShadow = true;
+        chair.add(back);
+
+        [[-0.38, -0.38], [0.38, -0.38], [-0.38, 0.38], [0.38, 0.38]].forEach(([lx, lz]) => {
+          const leg = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.56, 0.11), darkWoodMat);
+          leg.position.set(lx, 0.28, lz);
+          chair.add(leg);
+        });
+
+        tableGroup.add(chair);
+      }
+
+      createCafeChair(-1.42, 0);          // Dyko's chair (Left side, facing +X)
+      createCafeChair(1.42, Math.PI);     // Peyton's chair (Right side, facing -X)
+
+      // Two Low-Poly Steaming Coffee Cups on the Table
+      function createCoffeeCup(xPos, zPos) {
+        const cupHolder = new THREE.Group();
+        cupHolder.position.set(xPos, 1.12, zPos);
+
+        const ceramicMat = new THREE.MeshStandardMaterial({ color: 0xfaf5ed, roughness: 0.3 });
+        const coffeeMat = new THREE.MeshStandardMaterial({ color: 0x3b2314, roughness: 0.25 });
+
+        const saucer = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.18, 0.03, 12), ceramicMat);
+        cupHolder.add(saucer);
+
+        const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.11, 0.22, 12), ceramicMat);
+        cup.position.y = 0.12;
+        cup.castShadow = true;
+        cupHolder.add(cup);
+
+        const liquid = new THREE.Mesh(new THREE.CylinderGeometry(0.125, 0.125, 0.02, 12), coffeeMat);
+        liquid.position.y = 0.225;
+        cupHolder.add(liquid);
+
+        // Rising Steam Particles above each coffee cup
+        const steamMat = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.5
+        });
+
+        for (let s = 0; s < 3; s++) {
+          const puff = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.06), steamMat.clone());
+          puff.position.set(0, 0.28 + s * 0.12, 0);
+          cupHolder.add(puff);
+          steamParticles.push({
+            mesh: puff,
+            phase: s * 2.1 + (xPos > 0 ? 1.0 : 0)
+          });
+        }
+
+        tableGroup.add(cupHolder);
+        return cupHolder;
+      }
+
+      dykoCupGroup = createCoffeeCup(-0.44, 0.08);
+      peytonCupGroup = createCoffeeCup(0.44, -0.08);
+
+      // Tiny Romantic Candle in center of table
+      const candle = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08, 0.08, 0.18, 10),
+        new THREE.MeshStandardMaterial({ color: 0xfff3d6 })
+      );
+      candle.position.set(0, 1.2, -0.22);
+      tableGroup.add(candle);
+
+      const flame = new THREE.Mesh(
+        new THREE.ConeGeometry(0.04, 0.1, 6),
+        new THREE.MeshBasicMaterial({ color: 0xffb74d })
+      );
+      flame.position.set(0, 1.33, -0.22);
+      tableGroup.add(flame);
+
+      // Warm Point Light over Café Table
+      const cafeLight = new THREE.PointLight(0xffcb85, 1.15, 14);
+      cafeLight.position.set(11.2, 3.2, 0.2);
+      australiaWorld.add(cafeLight);
+    }
+    buildAustraliaScene();
+
+    /*************************************************************************
+     * 9. STATE MACHINE, COUPLE POSES & SCENE TRANSITIONS
+     *************************************************************************/
+    const STATE = {
+      scene: 'intro', // 'intro' | 'flight' | 'walk' | 'cafe' | 'finale'
+      pose: 'normal', // 'normal' | 'hold_hands' | 'hug' | 'kiss' | 'sleep' | 'sip_coffee'
+      poseTimer: 0,
+      couplePos: new THREE.Vector3(-4.5, 0, 1.2),
+      coupleAngle: Math.PI / 2, // Facing towards the café (+X)
+      autoWalkTarget: null,
+      isWalking: false,
+      walkCycle: 0,
+      cameraOrbitYaw: 0,
+      cameraOrbitPitch: 0.25,
+      cameraTarget: new THREE.Vector3(0, 1.2, 0),
+      cameraPos: new THREE.Vector3(0, 4, 10),
+      desiredCamTarget: new THREE.Vector3(0, 1.2, 0),
+      desiredCamOffset: new THREE.Vector3(0, 3.5, 8.5)
+    };
+
+    const fadeOverlay = document.getElementById('scene-fade');
+    function transitionToScene(targetScene, setupCallback) {
+      sound.playChime(528, 704);
+      fadeOverlay.style.opacity = '1';
+      setTimeout(() => {
+        // Hide all scene UI sections
+        ['ui-scene-intro', 'ui-scene-flight', 'ui-scene-walk', 'ui-scene-cafe', 'ui-scene-finale'].forEach(id => {
+          document.getElementById(id).classList.add('hidden');
+        });
+
+        STATE.scene = targetScene;
+        STATE.cameraOrbitYaw = 0;
+        STATE.cameraOrbitPitch = 0.2;
+        if (setupCallback) setupCallback();
+
+        setTimeout(() => {
+          fadeOverlay.style.opacity = '0';
+        }, 120);
+      }, 820);
+    }
+
+    // Initial Fade-In on Page Load
+    window.addEventListener('load', () => {
+      setupIntroState();
+      setTimeout(() => {
+        fadeOverlay.style.opacity = '0';
+      }, 250);
+    });
+
+    // ----- SCENE 0 SETUP: INTRO -----
+    function setupIntroState() {
+      introWorld.visible = true;
+      flightWorld.visible = false;
+      australiaWorld.visible = false;
+      coupleGroup.visible = false;
+
+      scene.background.setHex(0x131016);
+      scene.fog.color.setHex(0x131016);
+      scene.fog.density = 0.015;
+
+      document.getElementById('ui-scene-intro').classList.remove('hidden');
+      document.getElementById('objective-banner').classList.add('hidden');
+      document.getElementById('hud-scene-label').textContent = 'Boarding Pass';
+
+      STATE.desiredCamTarget.set(0, 0.2, 0);
+      STATE.desiredCamOffset.set(0, 1.2, 8.2);
+      camera.position.set(0, 1.4, 8.2);
+    }
+
+    // ----- SCENE 1 SETUP: THE FLIGHT TOGETHER -----
+    function setupFlightState() {
+      introWorld.visible = false;
+      flightWorld.visible = true;
+      australiaWorld.visible = false;
+      coupleGroup.visible = true;
+
+      // Golden Hour Sky
+      scene.background.setHex(0xd68c5e);
+      scene.fog.color.setHex(0xd68c5e);
+      scene.fog.density = 0.014;
+      dirLight.color.setHex(0xffe1a8);
+      dirLight.intensity = 1.45;
+
+      sound.startAmbient('plane');
+
+      document.getElementById('ui-scene-flight').classList.remove('hidden');
+      document.getElementById('objective-banner').classList.add('hidden');
+      document.getElementById('hud-scene-label').textContent = 'Scene 1 • Flight to Sydney';
+
+      // Position couple seated side-by-side inside the airplane cabin
+      planeGroup.add(coupleGroup);
+      coupleGroup.position.set(0, 0, 0.15);
+      coupleGroup.rotation.set(0, 0, 0);
+
+      applyFlightSeatedPose('normal');
+
+      STATE.desiredCamTarget.set(-0.1, 1.35, 0.2);
+      STATE.desiredCamOffset.set(4.6, 2.5, 4.2);
+      showRomanticToast("\"Next stop: Australia with my favorite girl. I'm in love with you, Pey.\"");
+    }
+
+    function applyFlightSeatedPose(mode) {
+      STATE.pose = mode;
+      dyko.resetPose();
+      peyton.resetPose();
+
+      // Seated next to each other (2A & 2B) facing forward (+Z)
+      dyko.root.position.set(-0.85, -0.35, 0);
+      peyton.root.position.set(0.45, -0.35, 0);
+
+      // Bend legs 90 degrees for sitting
+      dyko.leftLeg.rotation.x = -Math.PI / 2;
+      dyko.rightLeg.rotation.x = -Math.PI / 2;
+      peyton.leftLeg.rotation.x = -Math.PI / 2;
+      peyton.rightLeg.rotation.x = -Math.PI / 2;
+
+      coupleGlowLight.intensity = 0;
+
+      const titleEl = document.getElementById('flight-status-title');
+      const descEl = document.getElementById('flight-status-desc');
+
+      if (mode === 'hold_hands') {
+        // Inner arms reach toward each other
+        dyko.leftArm.rotation.z = 0.45;
+        dyko.leftArm.rotation.x = -0.65;
+        peyton.rightArm.rotation.z = -0.45;
+        peyton.rightArm.rotation.x = -0.65;
+        dyko.headPivot.rotation.y = -0.25;
+        peyton.headPivot.rotation.y = 0.25;
+        dyko.setExpression('love');
+        peyton.setExpression('love');
+        coupleGlowLight.intensity = 1.4;
+        coupleGlowLight.position.set(-0.2, 1.3, 0.5);
+        spawnHeartParticle(new THREE.Vector3(-0.2, 1.7, 0.3), 4);
+        sound.playHeartArpeggio();
+        titleEl.textContent = "Holding your hand above the clouds...";
+        descEl.textContent = "\"Holding your hand makes every mile worth it. I'm in love with you, Pey.\"";
+        showRomanticToast("\"Holding your hand makes the distance disappear. I'm in love, Pey.\"");
+      } else if (mode === 'hug') {
+        // Turn and lean into a cozy seated hug
+        dyko.root.position.x = -0.58;
+        peyton.root.position.x = 0.18;
+        dyko.root.rotation.y = -0.55;
+        peyton.root.rotation.y = 0.55;
+        dyko.leftArm.rotation.x = -1.25;
+        dyko.rightArm.rotation.x = -1.1;
+        peyton.leftArm.rotation.x = -1.1;
+        peyton.rightArm.rotation.x = -1.25;
+        dyko.setExpression('love');
+        peyton.setExpression('love');
+        coupleGlowLight.intensity = 1.6;
+        spawnHeartParticle(new THREE.Vector3(-0.2, 1.85, 0.2), 5);
+        sound.playHeartArpeggio();
+        titleEl.textContent = "Wrapped in a warm mid-flight hug...";
+        descEl.textContent = "\"I never want to let go of you, Pey.\"";
+        showRomanticToast("\"Wrapped in your arms at 35,000 feet... I'm so in love with you, Pey.\"");
+      } else if (mode === 'kiss') {
+        dyko.root.position.x = -0.56;
+        peyton.root.position.x = 0.16;
+        dyko.root.rotation.y = -0.78;
+        peyton.root.rotation.y = 0.78;
+        dyko.bodyPivot.rotation.x = 0.16;
+        peyton.bodyPivot.rotation.x = 0.16;
+        dyko.leftArm.rotation.x = -1.0;
+        peyton.rightArm.rotation.x = -1.0;
+        dyko.setExpression('love');
+        peyton.setExpression('love');
+        coupleGlowLight.intensity = 1.8;
+        spawnHeartParticle(new THREE.Vector3(-0.2, 2.0, 0.2), 6, 1.0);
+        sound.playHeartArpeggio();
+        titleEl.textContent = "Sharing a sweet kiss in the sky...";
+        descEl.textContent = "\"I'm so in love with you, Pey.\"";
+        showRomanticToast("\"Kissing you above the clouds... I'm in love with you, Pey.\"");
+      } else if (mode === 'sleep') {
+        // Sleeping together on the flight — Peyton rests her head on Dyko's shoulder
+        dyko.root.position.x = -0.62;
+        peyton.root.position.x = 0.16;
+        peyton.bodyPivot.rotation.z = 0.24;
+        peyton.headPivot.rotation.z = 0.22;
+        dyko.headPivot.rotation.z = -0.15;
+        dyko.leftArm.rotation.z = 0.4;
+        dyko.leftArm.rotation.x = -0.7;
+        dyko.setExpression('sleep');
+        peyton.setExpression('sleep');
+        coupleGlowLight.intensity = 1.2;
+        spawnHeartParticle(new THREE.Vector3(-0.2, 1.9, 0.2), 3, 0.7);
+        sound.playWarmFinaleChord();
+        titleEl.textContent = "Sleeping peacefully together on the flight...";
+        descEl.textContent = "\"Rest your head on my shoulder, Pey. We'll wake up in Australia together.\"";
+        showRomanticToast("\"Falling asleep next to you is the sweetest feeling. I'm in love, Pey.\"");
+      } else {
+        // Default cozy seated side-by-side holding hands subtly
+        dyko.leftArm.rotation.x = -0.35;
+        dyko.rightArm.rotation.x = -0.35;
+        peyton.leftArm.rotation.x = -0.35;
+        peyton.rightArm.rotation.x = -0.35;
+      }
+    }
+
+    // ----- SCENE 2 SETUP: ARRIVAL IN AUSTRALIA (PLAYABLE WALK & MULTI-SPOT EXPLORATION) -----
+    function setupWalkState() {
+      introWorld.visible = false;
+      flightWorld.visible = false;
+      australiaWorld.visible = true;
+      coupleGroup.visible = true;
+
+      // Sunny Australian Harbour Day Sky
+      scene.background.setHex(0x6ba7cc);
+      scene.fog.color.setHex(0x7fb4d4);
+      scene.fog.density = 0.009;
+      dirLight.color.setHex(0xfff1d0);
+      dirLight.intensity = 1.4;
+      ambientLight.intensity = 0.78;
+
+      sound.startAmbient('harbour');
+
+      document.getElementById('ui-scene-walk').classList.remove('hidden');
+      const objBanner = document.getElementById('objective-banner');
+      objBanner.classList.remove('hidden');
+      objBanner.classList.add('flex');
+      document.getElementById('objective-text').textContent = 'Walk to the seaside café together (or explore the 4 Sydney spots)';
+      document.getElementById('hud-scene-label').textContent = 'Scene 2 • Sydney Harbour';
+
+      // Attach couple back to main scene
+      scene.add(coupleGroup);
+      STATE.couplePos.set(-4.5, 0, 1.2);
+      STATE.coupleAngle = Math.PI / 2;
+      STATE.autoWalkTarget = null;
+      applyStandingHandInHandPose();
+
+      showRomanticToast("\"We made it to Sydney, Peyton! Take my hand and let's explore together.\"");
+    }
+
+    function applyStandingHandInHandPose() {
+      STATE.pose = 'hold_hands';
+      dyko.resetPose();
+      peyton.resetPose();
+
+      if (cuddleBlanketMesh) {
+        cuddleBlanketMesh.scale.set(1, 1, 1);
+        cuddleBlanketMesh.position.set(0, 0.54, 0.35);
+      }
+
+      // Standing side-by-side holding inner hands
+      dyko.root.position.set(-0.58, 0, 0);
+      peyton.root.position.set(0.58, 0, 0);
+
+      // Inner arms angled together to hold hands
+      dyko.leftArm.rotation.z = 0.36;
+      peyton.rightArm.rotation.z = -0.36;
+    }
+
+    function triggerCoupleInteractionInAustralia(action) {
+      STATE.autoWalkTarget = null;
+      STATE.isWalking = false;
+
+      if (action === 'hug') {
+        STATE.pose = 'hug';
+        dyko.resetPose();
+        peyton.resetPose();
+        // Face each other and wrap arms around each other
+        dyko.root.position.set(-0.34, 0, 0);
+        peyton.root.position.set(0.34, 0, 0);
+        dyko.root.rotation.y = Math.PI / 2;
+        peyton.root.rotation.y = -Math.PI / 2;
+
+        dyko.leftArm.rotation.x = -1.35;
+        dyko.rightArm.rotation.x = -1.35;
+        dyko.leftArm.rotation.z = -0.2;
+        dyko.rightArm.rotation.z = 0.2;
+
+        peyton.leftArm.rotation.x = -1.35;
+        peyton.rightArm.rotation.x = -1.35;
+        peyton.leftArm.rotation.z = -0.2;
+        peyton.rightArm.rotation.z = 0.2;
+
+        dyko.setExpression('love');
+        peyton.setExpression('love');
+
+        const p = coupleGroup.position.clone().add(new THREE.Vector3(0, 2.2, 0));
+        spawnHeartParticle(p, 6, 0.95);
+        sound.playHeartArpeggio();
+        showRomanticToast("\"Holding you in my arms in Sydney... I'm so in love with you, Pey.\"");
+      } else if (action === 'kiss') {
+        STATE.pose = 'kiss';
+        dyko.resetPose();
+        peyton.resetPose();
+        // Face each other closely and lean in for a tender kiss
+        dyko.root.position.set(-0.36, 0, 0);
+        peyton.root.position.set(0.36, 0, 0);
+        dyko.root.rotation.y = Math.PI / 2;
+        peyton.root.rotation.y = -Math.PI / 2;
+
+        dyko.bodyPivot.rotation.x = 0.16;
+        peyton.bodyPivot.rotation.x = 0.16;
+        dyko.headPivot.rotation.z = 0.12;
+        peyton.headPivot.rotation.z = -0.12;
+
+        dyko.leftArm.rotation.x = -1.05;
+        dyko.rightArm.rotation.x = -1.05;
+        peyton.leftArm.rotation.x = -1.05;
+        peyton.rightArm.rotation.x = -1.05;
+
+        dyko.setExpression('love');
+        peyton.setExpression('love');
+
+        const p = coupleGroup.position.clone().add(new THREE.Vector3(0, 2.3, 0));
+        spawnHeartParticle(p, 8, 1.05);
+        sound.playHeartArpeggio();
+        showRomanticToast("\"Every kiss with you feels like magic. I'm in love with you, Pey.\"");
+      } else if (action === 'sleep') {
+        // Move couple onto the cozy Starlight Harbour Daybed (Spot 3) & cuddle under the blanket!
+        STATE.pose = 'sleep';
+        STATE.couplePos.set(1.5, 0.56, -2.05);
+        STATE.coupleAngle = 0;
+        coupleGroup.position.copy(STATE.couplePos);
+        coupleGroup.rotation.y = 0;
+
+        dyko.resetPose();
+        peyton.resetPose();
+
+        // Lie down side-by-side on the plush daybed mattress facing upwards
+        dyko.root.position.set(-0.48, 0.18, -0.82);
+        peyton.root.position.set(0.48, 0.18, -0.82);
+
+        dyko.bodyPivot.rotation.x = -Math.PI / 2;
+        peyton.bodyPivot.rotation.x = -Math.PI / 2;
+
+        // Turn heads gently toward each other while sleeping
+        dyko.headPivot.rotation.y = -0.32;
+        peyton.headPivot.rotation.y = 0.32;
+
+        // Hold hands / cuddle under the blanket
+        dyko.leftArm.rotation.z = 0.42;
+        peyton.rightArm.rotation.z = -0.42;
+
+        dyko.setExpression('sleep');
+        peyton.setExpression('sleep');
+
+        if (cuddleBlanketMesh) {
+          cuddleBlanketMesh.position.set(0, 0.68, 0.25);
+          cuddleBlanketMesh.scale.set(1.04, 1.3, 1.15);
+        }
+
+        const p = coupleGroup.position.clone().add(new THREE.Vector3(0, 1.2, 0));
+        spawnHeartParticle(p, 5, 0.85);
+        sound.playWarmFinaleChord();
+        document.getElementById('walk-spot-tag').textContent = 'Starlight Harbour Daybed';
+        document.getElementById('walk-spot-title').textContent = 'Sleeping together in each other\'s arms';
+        showRomanticToast("\"Sleeping beside you under the Australian sky... I'm so in love with you, Pey.\"");
+      }
+    }
+
+    // ----- SCENE 3 SETUP: THE COFFEE DATE -----
+    function setupCafeState() {
+      introWorld.visible = false;
+      flightWorld.visible = false;
+      australiaWorld.visible = true;
+      coupleGroup.visible = true;
+
+      // Warm Golden Late Afternoon Sun
+      scene.background.setHex(0xd4966a);
+      scene.fog.color.setHex(0xd4966a);
+      scene.fog.density = 0.011;
+      dirLight.color.setHex(0xffd08a);
+
+      document.getElementById('ui-scene-cafe').classList.remove('hidden');
+      document.getElementById('objective-banner').classList.add('hidden');
+      document.getElementById('hud-scene-label').textContent = 'Scene 3 • The Coffee Date';
+
+      // Reset Cafe UI buttons
+      document.getElementById('btn-cafe-kiss').classList.add('hidden');
+      document.getElementById('btn-cafe-kiss').classList.remove('flex');
+      document.getElementById('cafe-dialogue-box').textContent =
+        "\"Sitting across from you by Sydney Harbour feels like a dream come true, Pey.\"";
+
+      // Place Dyko & Peyton seated across from each other at the Café Bistro Table (11.2, 0.24, 0.2)
+      scene.add(coupleGroup);
+      coupleGroup.position.set(11.2, 0.24, 0.2);
+      coupleGroup.rotation.set(0, 0, 0);
+
+      dyko.resetPose();
+      peyton.resetPose();
+
+      // Dyko on left chair (-1.42, facing +X), Peyton on right chair (+1.42, facing -X)
+      dyko.root.position.set(-1.38, -0.34, 0);
+      dyko.root.rotation.y = Math.PI / 2;
+      dyko.leftLeg.rotation.x = -Math.PI / 2;
+      dyko.rightLeg.rotation.x = -Math.PI / 2;
+      dyko.leftArm.rotation.x = -0.55;
+      dyko.rightArm.rotation.x = -0.55;
+
+      peyton.root.position.set(1.38, -0.34, 0);
+      peyton.root.rotation.y = -Math.PI / 2;
+      peyton.leftLeg.rotation.x = -Math.PI / 2;
+      peyton.rightLeg.rotation.x = -Math.PI / 2;
+      peyton.leftArm.rotation.x = -0.55;
+      peyton.rightArm.rotation.x = -0.55;
+
+      if (dykoCupGroup && peytonCupGroup) {
+        dykoCupGroup.position.set(-0.44, 1.12, 0.08);
+        peytonCupGroup.position.set(0.44, 1.12, -0.08);
+      }
+
+      STATE.pose = 'cafe_sit';
+      STATE.desiredCamTarget.set(11.2, 1.45, 0.2);
+      STATE.desiredCamOffset.set(0, 1.75, 4.3);
+    }
+
+    // ----- SCENE 4 SETUP: THE KISS, SLEEP UNDER THE STARS & FINALE -----
+    function setupFinaleState() {
+      introWorld.visible = false;
+      flightWorld.visible = false;
+      australiaWorld.visible = true;
+      coupleGroup.visible = true;
+
+      // Romantic Twilight Golden/Starry Evening
+      scene.background.setHex(0x231d2e);
+      scene.fog.color.setHex(0x231d2e);
+      scene.fog.density = 0.011;
+      dirLight.color.setHex(0xffb570);
+      dirLight.intensity = 0.95;
+
+      sound.playWarmFinaleChord();
+
+      document.getElementById('ui-scene-finale').classList.remove('hidden');
+      document.getElementById('objective-banner').classList.add('hidden');
+      document.getElementById('hud-scene-label').textContent = 'Scene 4 • Forever With You';
+
+      applyFinaleMode('kiss');
+    }
+
+    function applyFinaleMode(mode) {
+      // Update active pill highlight
+      ['btn-finale-kiss', 'btn-finale-hug', 'btn-finale-sleep'].forEach(id => {
+        document.getElementById(id).classList.remove('active-pill');
+      });
+
+      if (mode === 'kiss') {
+        document.getElementById('btn-finale-kiss').classList.add('active-pill');
+        coupleGroup.position.set(8.6, 0.24, 0.2);
+        coupleGroup.rotation.set(0, 0, 0);
+        STATE.couplePos.copy(coupleGroup.position);
+        triggerCoupleInteractionInAustralia('kiss');
+        STATE.desiredCamTarget.set(8.6, 1.55, 0.2);
+        STATE.desiredCamOffset.set(0, 1.15, 3.6);
+      } else if (mode === 'hug') {
+        document.getElementById('btn-finale-hug').classList.add('active-pill');
+        coupleGroup.position.set(8.6, 0.24, 0.2);
+        coupleGroup.rotation.set(0, 0, 0);
+        STATE.couplePos.copy(coupleGroup.position);
+        triggerCoupleInteractionInAustralia('hug');
+        STATE.desiredCamTarget.set(8.6, 1.55, 0.2);
+        STATE.desiredCamOffset.set(0, 1.15, 3.6);
+      } else if (mode === 'sleep') {
+        document.getElementById('btn-finale-sleep').classList.add('active-pill');
+        triggerCoupleInteractionInAustralia('sleep');
+        STATE.desiredCamTarget.set(1.5, 1.0, -2.0);
+        STATE.desiredCamOffset.set(0, 2.3, 3.8);
+      }
+    }
+
+    /*************************************************************************
+     * 10. UI BUTTONS, KEYBOARD, TOUCH JOYSTICK & CAMERA ORBIT HANDLERS
+     *************************************************************************/
+    // Audio Mute Toggle
+    document.getElementById('audio-toggle-btn').addEventListener('click', () => {
+      const muted = sound.toggleMute();
+      document.getElementById('icon-sound-on').classList.toggle('hidden', muted);
+      document.getElementById('icon-sound-off').classList.toggle('hidden', !muted);
+      document.getElementById('audio-label').textContent = muted ? 'Muted' : 'Sound On';
+      if (!muted) sound.playChime();
+    });
+
+    // Scene 0 -> Scene 1
+    document.getElementById('btn-accept-flight').addEventListener('click', () => {
+      sound.init();
+      transitionToScene('flight', setupFlightState);
+    });
+
+    // Scene 1 Flight Interactive Buttons
+    document.getElementById('btn-flight-hold-hands').addEventListener('click', () => {
+      applyFlightSeatedPose('hold_hands');
+    });
+    document.getElementById('btn-flight-hug').addEventListener('click', () => {
+      applyFlightSeatedPose('hug');
+    });
+    document.getElementById('btn-flight-kiss').addEventListener('click', () => {
+      applyFlightSeatedPose('kiss');
+    });
+    document.getElementById('btn-flight-sleep').addEventListener('click', () => {
+      applyFlightSeatedPose('sleep');
+    });
+    document.getElementById('btn-land-australia').addEventListener('click', () => {
+      transitionToScene('walk', setupWalkState);
+    });
+
+    // Scene 2 Australia Places to Visit Buttons
+    document.querySelectorAll('.spot-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        sound.playChime(587, 784);
+        const spotKey = btn.getAttribute('data-spot');
+        const spot = AUSTRALIA_SPOTS[spotKey];
+        if (!spot) return;
+
+        // Wake up if currently sleeping
+        if (STATE.pose === 'sleep') {
+          STATE.couplePos.y = 0;
+        }
+        applyStandingHandInHandPose();
+        STATE.autoWalkTarget = {
+          key: spotKey,
+          x: spot.x,
+          z: spot.z,
+          facing: spot.facing,
+          name: spot.name,
+          desc: spot.desc
+        };
+
+        document.getElementById('walk-spot-tag').textContent = 'Strolling Together To';
+        document.getElementById('walk-spot-title').textContent = spot.name;
+      });
+    });
+
+    // Scene 2 Couple Action Buttons (Hug, Kiss, Sleep Together, "I'm in love")
+    document.getElementById('btn-walk-hug').addEventListener('click', () => {
+      if (STATE.pose === 'sleep') STATE.couplePos.y = 0;
+      coupleGroup.position.y = 0;
+      triggerCoupleInteractionInAustralia('hug');
+    });
+
+    document.getElementById('btn-walk-kiss').addEventListener('click', () => {
+      if (STATE.pose === 'sleep') STATE.couplePos.y = 0;
+      coupleGroup.position.y = 0;
+      triggerCoupleInteractionInAustralia('kiss');
+    });
+
+    document.getElementById('btn-walk-sleep').addEventListener('click', () => {
+      triggerCoupleInteractionInAustralia('sleep');
+    });
+
+    document.getElementById('btn-walk-whisper').addEventListener('click', () => {
+      sound.playHeartArpeggio();
+      const p = coupleGroup.position.clone().add(new THREE.Vector3(0, 2.3, 0));
+      spawnHeartParticle(p, 5);
+      showRomanticToast();
+    });
+
+    document.getElementById('btn-enter-cafe-direct').addEventListener('click', () => {
+      transitionToScene('cafe', setupCafeState);
+    });
+
+    // Scene 3 Coffee Date Buttons
+    document.getElementById('btn-cafe-sip').addEventListener('click', () => {
+      sound.playChime(659, 880);
+      STATE.pose = 'sip_coffee';
+      STATE.poseTimer = 0;
+
+      // Raise right arms and coffee cups
+      dyko.rightArm.rotation.x = -1.45;
+      peyton.rightArm.rotation.x = -1.45;
+      if (dykoCupGroup && peytonCupGroup) {
+        dykoCupGroup.position.set(-0.78, 1.48, 0.14);
+        peytonCupGroup.position.set(0.78, 1.48, -0.14);
+      }
+
+      document.getElementById('cafe-dialogue-box').textContent =
+        "\"Best coffee in Australia, even better with you. I'm so in love with you, Pey.\"";
+      showRomanticToast("\"Best coffee in Australia, even better with you.\"", "Coffee Date • Sydney");
+
+      const kissBtn = document.getElementById('btn-cafe-kiss');
+      kissBtn.classList.remove('hidden');
+      kissBtn.classList.add('flex');
+    });
+
+    document.getElementById('btn-cafe-hold-hands').addEventListener('click', () => {
+      sound.playHeartArpeggio();
+      dyko.leftArm.rotation.x = -1.15;
+      dyko.rightArm.rotation.x = -1.15;
+      peyton.leftArm.rotation.x = -1.15;
+      peyton.rightArm.rotation.x = -1.15;
+      dyko.setExpression('love');
+      peyton.setExpression('love');
+      spawnHeartParticle(new THREE.Vector3(11.2, 1.85, 0.2), 5);
+      document.getElementById('cafe-dialogue-box').textContent =
+        "\"Holding your hands across this little table... I'm in love with you, Pey.\"";
+      showRomanticToast("\"I could sit here holding your hands forever, Pey.\"");
+
+      const kissBtn = document.getElementById('btn-cafe-kiss');
+      kissBtn.classList.remove('hidden');
+      kissBtn.classList.add('flex');
+    });
+
+    document.getElementById('btn-cafe-whisper').addEventListener('click', () => {
+      sound.playHeartArpeggio();
+      spawnHeartParticle(new THREE.Vector3(11.2, 1.9, 0.2), 6);
+      document.getElementById('cafe-dialogue-box').textContent =
+        "\"I'm in love with you, Pey — more than words can ever say.\"";
+      showRomanticToast("\"I'm in love with you, Pey.\"");
+    });
+
+    document.getElementById('btn-cafe-kiss').addEventListener('click', () => {
+      transitionToScene('finale', setupFinaleState);
+    });
+
+    document.getElementById('btn-cafe-back-walk').addEventListener('click', () => {
+      transitionToScene('walk', setupWalkState);
+    });
+
+    // Scene 4 Finale Buttons
+    document.getElementById('btn-finale-kiss').addEventListener('click', () => {
+      applyFinaleMode('kiss');
+    });
+    document.getElementById('btn-finale-hug').addEventListener('click', () => {
+      applyFinaleMode('hug');
+    });
+    document.getElementById('btn-finale-sleep').addEventListener('click', () => {
+      applyFinaleMode('sleep');
+    });
+    document.getElementById('btn-finale-explore').addEventListener('click', () => {
+      transitionToScene('walk', setupWalkState);
+    });
+    document.getElementById('btn-replay-trip').addEventListener('click', () => {
+      transitionToScene('intro', setupIntroState);
+    });
+
+    // Keyboard WASD / Arrow Controls for Scene 2
+    const keys = { up: false, down: false, left: false, right: false };
+    window.addEventListener('keydown', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === 'w' || k === 'arrowup') keys.up = true;
+      if (k === 's' || k === 'arrowdown') keys.down = true;
+      if (k === 'a' || k === 'arrowleft') keys.left = true;
+      if (k === 'd' || k === 'arrowright') keys.right = true;
+    });
+    window.addEventListener('keyup', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === 'w' || k === 'arrowup') keys.up = false;
+      if (k === 's' || k === 'arrowdown') keys.down = false;
+      if (k === 'a' || k === 'arrowleft') keys.left = false;
+      if (k === 'd' || k === 'arrowright') keys.right = false;
+    });
+
+    // Mobile Virtual Joystick Handler
+    const joyZone = document.getElementById('joystick-zone');
+    const joyKnob = document.getElementById('joystick-knob');
+    const joyVector = { x: 0, y: 0, active: false };
+
+    function handleJoystickMove(clientX, clientY) {
+      const rect = joyZone.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const maxRadius = rect.width * 0.36;
+
+      let dx = clientX - centerX;
+      let dy = clientY - centerY;
+      const dist = Math.hypot(dx, dy);
+      if (dist > maxRadius) {
+        dx = (dx / dist) * maxRadius;
+        dy = (dy / dist) * maxRadius;
+      }
+
+      joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+      joyVector.x = dx / maxRadius;
+      joyVector.y = dy / maxRadius;
+    }
+
+    function resetJoystick() {
+      joyVector.active = false;
+      joyVector.x = 0;
+      joyVector.y = 0;
+      joyKnob.style.transform = 'translate(0px, 0px)';
+    }
+
+    joyZone.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      joyVector.active = true;
+      joyZone.setPointerCapture(e.pointerId);
+      handleJoystickMove(e.clientX, e.clientY);
+    });
+    joyZone.addEventListener('pointermove', (e) => {
+      if (!joyVector.active) return;
+      handleJoystickMove(e.clientX, e.clientY);
+    });
+    joyZone.addEventListener('pointerup', resetJoystick);
+    joyZone.addEventListener('pointercancel', resetJoystick);
+
+    // Camera Drag Orbit & Tap-to-Walk on Canvas
+    let isDraggingCamera = false;
+    let pointerDownPos = { x: 0, y: 0 };
+    let prevPointer = { x: 0, y: 0 };
+    const raycaster = new THREE.Raycaster();
+    const walkPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      isDraggingCamera = true;
+      pointerDownPos.x = e.clientX;
+      pointerDownPos.y = e.clientY;
+      prevPointer.x = e.clientX;
+      prevPointer.y = e.clientY;
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isDraggingCamera) return;
+      const dx = e.clientX - prevPointer.x;
+      const dy = e.clientY - prevPointer.y;
+      prevPointer.x = e.clientX;
+      prevPointer.y = e.clientY;
+
+      STATE.cameraOrbitYaw -= dx * 0.0065;
+      STATE.cameraOrbitPitch = Math.max(-0.15, Math.min(0.85, STATE.cameraOrbitPitch + dy * 0.005));
+    });
+
+    window.addEventListener('pointerup', (e) => {
+      if (isDraggingCamera && STATE.scene === 'walk') {
+        const moveDist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+        if (moveDist < 8 && e.target === renderer.domElement) {
+          const mouse = new THREE.Vector2(
+            (e.clientX / window.innerWidth) * 2 - 1,
+            -(e.clientY / window.innerHeight) * 2 + 1
+          );
+          raycaster.setFromCamera(mouse, camera);
+          const hitPoint = new THREE.Vector3();
+          if (raycaster.ray.intersectPlane(walkPlane, hitPoint)) {
+            const clampedX = Math.max(-18.0, Math.min(10.0, hitPoint.x));
+            const clampedZ = Math.max(-2.9, Math.min(5.2, hitPoint.z));
+            if (STATE.pose === 'sleep') STATE.couplePos.y = 0;
+            applyStandingHandInHandPose();
+            STATE.autoWalkTarget = {
+              key: 'tap',
+              x: clampedX,
+              z: clampedZ,
+              facing: Math.atan2(clampedX - STATE.couplePos.x, clampedZ - STATE.couplePos.z),
+              name: 'Sydney Harbour Walk',
+              desc: "\"Every step with you is my favorite, Pey. I'm in love with you.\""
+            };
+          }
+        }
+      }
+      isDraggingCamera = false;
+    });
+
+    /*************************************************************************
+     * 11. MAIN 60FPS ANIMATION LOOP
+     *************************************************************************/
+    const clock = new THREE.Clock();
+    let ambientHeartAccumulator = 0;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.1);
+      const elapsed = clock.getElapsedTime();
+
+      updateParticles(dt);
+
+      // ----- SCENE 0: INTRO GLOBE -----
+      if (STATE.scene === 'intro') {
+        if (introWorld.userData.globe) {
+          introWorld.userData.globe.rotation.y += dt * 0.25;
+          introWorld.userData.orbitRing.rotation.z -= dt * 0.45;
+        }
+      }
+
+      // ----- SCENE 1: FLIGHT -----
+      if (STATE.scene === 'flight') {
+        // Gentle airplane bobbing & roll in flight
+        planeGroup.position.y = Math.sin(elapsed * 1.6) * 0.18;
+        planeGroup.rotation.z = Math.sin(elapsed * 1.1) * 0.035;
+        planeGroup.rotation.x = Math.cos(elapsed * 1.3) * 0.02;
+
+        // Drift clouds past the airplane (-Z)
+        flightClouds.forEach(c => {
+          c.mesh.position.z -= c.speed * dt;
+          if (c.mesh.position.z < -32) {
+            c.mesh.position.z = 32;
+          }
+        });
+
+        // Subtle couple breathing & ambient hearts when holding hands / hugging / kissing / sleeping
+        if (STATE.pose !== 'normal') {
+          ambientHeartAccumulator += dt;
+          if (ambientHeartAccumulator > 1.35) {
+            ambientHeartAccumulator = 0;
+            spawnHeartParticle(new THREE.Vector3(-0.2, 1.85, 0.25), 1, 0.7);
+          }
+        }
+      }
+
+      // ----- SCENE 2, 3, 4: AUSTRALIA HARBOUR ANIMATIONS -----
+      if (australiaWorld.visible) {
+        // Gentle harbour water & sailboat bobbing
+        if (waterMesh) {
+          waterMesh.position.y = -1.1 + Math.sin(elapsed * 1.8) * 0.05;
+        }
+        if (sailboatGroup) {
+          sailboatGroup.position.y = -0.35 + Math.sin(elapsed * 2.1) * 0.07;
+          sailboatGroup.rotation.z = Math.sin(elapsed * 1.5) * 0.04;
+        }
+        if (koalaGroup) {
+          koalaGroup.rotation.z = Math.sin(elapsed * 2.2) * 0.05;
+        }
+        if (cafeMarkerRing) {
+          cafeMarkerRing.rotation.y += dt * 0.9;
+          const pulse = 1 + Math.sin(elapsed * 3.5) * 0.08;
+          cafeMarkerRing.scale.set(pulse, 1, pulse);
+        }
+
+        // Rising coffee steam particles
+        steamParticles.forEach(sp => {
+          sp.phase += dt * 1.3;
+          const progress = (sp.phase % 2.0) / 2.0;
+          sp.mesh.position.y = 0.25 + progress * 0.42;
+          sp.mesh.position.x = Math.sin(sp.phase * 3) * 0.03;
+          sp.mesh.material.opacity = (1 - progress) * 0.55;
+          const s = 0.7 + progress * 0.8;
+          sp.mesh.scale.setScalar(s);
+        });
+      }
+
+      // ----- SCENE 2: PLAYABLE COUPLE WALKING & MULTI-SPOT DISCOVERY -----
+      if (STATE.scene === 'walk') {
+        let moveX = 0;
+        let moveZ = 0;
+
+        if (keys.left) moveX -= 1;
+        if (keys.right) moveX += 1;
+        if (keys.up) moveZ -= 1;
+        if (keys.down) moveZ += 1;
+
+        if (joyVector.active && (Math.abs(joyVector.x) > 0.08 || Math.abs(joyVector.y) > 0.08)) {
+          moveX = joyVector.x;
+          moveZ = joyVector.y;
+        }
+
+        const manualInput = Math.hypot(moveX, moveZ) > 0.05;
+        if (manualInput) {
+          STATE.autoWalkTarget = null;
+          if (STATE.pose !== 'hold_hands') {
+            STATE.couplePos.y = 0;
+            applyStandingHandInHandPose();
+          }
+        }
+
+        // Handle Auto-Walk to clicked Australian Spot
+        if (STATE.autoWalkTarget) {
+          const dx = STATE.autoWalkTarget.x - STATE.couplePos.x;
+          const dz = STATE.autoWalkTarget.z - STATE.couplePos.z;
+          const dist = Math.hypot(dx, dz);
+
+          if (dist > 0.25) {
+            moveX = dx / dist;
+            moveZ = dz / dist;
+          } else {
+            // Reached destination spot!
+            const arrivedSpot = STATE.autoWalkTarget;
+            STATE.autoWalkTarget = null;
+            STATE.coupleAngle = arrivedSpot.facing;
+
+            showRomanticToast(arrivedSpot.desc, arrivedSpot.name);
+            spawnHeartParticle(coupleGroup.position.clone().add(new THREE.Vector3(0, 2.2, 0)), 4);
+
+            if (arrivedSpot.key === 'cabana') {
+              triggerCoupleInteractionInAustralia('sleep');
+            } else if (arrivedSpot.key === 'cafe') {
+              transitionToScene('cafe', setupCafeState);
+            }
+          }
+        }
+
+        const moveLen = Math.hypot(moveX, moveZ);
+        if (moveLen > 0.05) {
+          STATE.isWalking = true;
+          const speed = 3.8;
+          const nx = moveX / Math.max(1, moveLen);
+          const nz = moveZ / Math.max(1, moveLen);
+
+          STATE.couplePos.x += nx * speed * dt;
+          STATE.couplePos.z += nz * speed * dt;
+
+          // Keep couple within boardwalk & Bondi beach bounds
+          STATE.couplePos.x = Math.max(-18.5, Math.min(10.5, STATE.couplePos.x));
+          STATE.couplePos.z = Math.max(-3.1, Math.min(5.5, STATE.couplePos.z));
+
+          // Smoothly rotate couple toward movement direction
+          const targetAngle = Math.atan2(nx, nz);
+          let angleDiff = targetAngle - STATE.coupleAngle;
+          while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+          while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+          STATE.coupleAngle += angleDiff * Math.min(1, dt * 10);
+
+          // Swing blocky legs and outer arms while holding inner hands
+          STATE.walkCycle += dt * 8.5;
+          const swing = Math.sin(STATE.walkCycle) * 0.52;
+
+          dyko.leftLeg.rotation.x = swing;
+          dyko.rightLeg.rotation.x = -swing;
+          peyton.leftLeg.rotation.x = -swing;
+          peyton.rightLeg.rotation.x = swing;
+
+          dyko.rightArm.rotation.x = swing * 0.65;
+          peyton.leftArm.rotation.x = -swing * 0.65;
+
+          // Gentle walking bounce
+          dyko.bodyPivot.position.y = Math.abs(Math.sin(STATE.walkCycle)) * 0.06;
+          peyton.bodyPivot.position.y = Math.abs(Math.cos(STATE.walkCycle)) * 0.06;
+
+          // Check proximity to Seaside Café Marker (x: 8.6, z: 0.2)
+          const distToCafe = Math.hypot(STATE.couplePos.x - 8.6, STATE.couplePos.z - 0.2);
+          if (distToCafe < 1.35 && !STATE.autoWalkTarget) {
+            STATE.isWalking = false;
+            transitionToScene('cafe', setupCafeState);
+          }
+
+          // Update context title based on closest Australian landmark
+          if (STATE.couplePos.x < -11.5) {
+            document.getElementById('walk-spot-tag').textContent = 'Spot 2 • Bondi Beach & Koala Grove';
+            document.getElementById('walk-spot-title').textContent = 'Golden sand & cute koalas with you, Pey';
+          } else if (STATE.couplePos.x < -4.5 && STATE.couplePos.z < -0.5) {
+            document.getElementById('walk-spot-tag').textContent = 'Spot 1 • Sydney Opera House Lookout';
+            document.getElementById('walk-spot-title').textContent = 'Admiring the Sydney Harbour view together';
+          } else if (Math.abs(STATE.couplePos.x - 1.5) < 3.0 && STATE.couplePos.z < -0.5) {
+            document.getElementById('walk-spot-tag').textContent = 'Spot 3 • Starlight Harbour Daybed';
+            document.getElementById('walk-spot-title').textContent = 'Cozy sunset bed ready to cuddle & sleep';
+          } else {
+            document.getElementById('walk-spot-tag').textContent = 'Sydney Harbour Boardwalk';
+            document.getElementById('walk-spot-title').textContent = 'Walking hand in hand toward the café';
+          }
+        } else {
+          STATE.isWalking = false;
+          if (STATE.pose === 'hold_hands') {
+            dyko.leftLeg.rotation.x *= 0.85;
+            dyko.rightLeg.rotation.x *= 0.85;
+            peyton.leftLeg.rotation.x *= 0.85;
+            peyton.rightLeg.rotation.x *= 0.85;
+            dyko.rightArm.rotation.x *= 0.85;
+            peyton.leftArm.rotation.x *= 0.85;
+            dyko.bodyPivot.position.y = Math.sin(elapsed * 2.2) * 0.02;
+            peyton.bodyPivot.position.y = Math.sin(elapsed * 2.2 + 0.6) * 0.02;
+          }
+        }
+
+        if (STATE.pose !== 'sleep') {
+          coupleGroup.position.copy(STATE.couplePos);
+          coupleGroup.rotation.y = STATE.coupleAngle;
+        }
+
+        // Camera smoothly tracks the couple
+        STATE.desiredCamTarget.set(
+          coupleGroup.position.x,
+          coupleGroup.position.y + 1.45,
+          coupleGroup.position.z
+        );
+        STATE.desiredCamOffset.set(0, 3.3, 7.6);
+      }
+
+      // Gentle romantic sway when hugging, kissing, or sleeping in Australia / Finale
+      if (STATE.pose === 'hug' || STATE.pose === 'kiss') {
+        coupleGroup.rotation.z = Math.sin(elapsed * 1.8) * 0.022;
+        ambientHeartAccumulator += dt;
+        if (ambientHeartAccumulator > 0.9) {
+          ambientHeartAccumulator = 0;
+          const p = coupleGroup.position.clone().add(new THREE.Vector3(0, 2.2, 0));
+          spawnHeartParticle(p, 1, 0.85);
+        }
+      } else if (STATE.pose === 'sleep' && STATE.scene !== 'flight') {
+        // Gentle sleeping chest breathing & floating hearts
+        const breath = Math.sin(elapsed * 1.6) * 0.025;
+        dyko.bodyPivot.position.y = breath;
+        peyton.bodyPivot.position.y = breath;
+        ambientHeartAccumulator += dt;
+        if (ambientHeartAccumulator > 1.2) {
+          ambientHeartAccumulator = 0;
+          const p = coupleGroup.position.clone().add(new THREE.Vector3(0, 0.9, 0));
+          spawnHeartParticle(p, 1, 0.75);
+        }
+      } else {
+        coupleGroup.rotation.z = 0;
+      }
+
+      // ----- SMOOTH ORBIT CAMERA INTERPOLATION -----
+      STATE.cameraTarget.lerp(STATE.desiredCamTarget, Math.min(1, dt * 5.5));
+
+      const baseOffset = STATE.desiredCamOffset.clone();
+      const radius = Math.hypot(baseOffset.x, baseOffset.z);
+      const baseAngle = Math.atan2(baseOffset.x, baseOffset.z);
+
+      // Gentle automatic camera drift in finale & flight
+      const autoOrbit = (STATE.scene === 'finale' || STATE.scene === 'flight')
+        ? Math.sin(elapsed * 0.32) * 0.35
+        : 0;
+
+      const finalYaw = baseAngle + STATE.cameraOrbitYaw + autoOrbit;
+      const desiredPos = new THREE.Vector3(
+        STATE.cameraTarget.x + Math.sin(finalYaw) * radius,
+        STATE.cameraTarget.y + baseOffset.y + STATE.cameraOrbitPitch * 2.5,
+        STATE.cameraTarget.z + Math.cos(finalYaw) * radius
+      );
+
+      camera.position.lerp(desiredPos, Math.min(1, dt * 5.0));
+      camera.lookAt(STATE.cameraTarget);
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Responsive Window Resize Handling
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    });
+  </script>
+</body>
+</html>
